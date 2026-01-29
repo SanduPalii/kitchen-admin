@@ -14,4 +14,12 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('calculator', function () {
+    return Inertia::render('Calculator');
+})->middleware(['auth', 'verified'])->name('calculator');
+
+Route::get('ingredients', function () {
+    return Inertia::render('Ingredients');
+})->middleware(['auth', 'verified'])->name('ingredients');
+
 require __DIR__.'/settings.php';
