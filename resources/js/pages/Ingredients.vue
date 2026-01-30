@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import Button from 'primevue/button';
-import Column from 'primevue/column';
-import DataTable from 'primevue/datatable';
-import Rating from 'primevue/rating';
-import Tag from 'primevue/tag';
-import { ref } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
+import { ref, computed, watch } from 'vue';
+import Table from '@/components/ui/table/Table.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { ingredients } from '@/routes';
+import { ingredients  } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,81 +11,70 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: ingredients().url,
     },
 ];
-const products = ref([
-    {
-        id: '1000',
-        code: 'f230fh0g3',
-        name: 'Bamboo Watch',
-        description: 'Product Description',
-        image: 'bamboo-watch.jpg',
-        price: 65,
-        category: 'Accessories',
-        quantity: 24,
-        inventoryStatus: 'INSTOCK',
-        rating: 5
-    }
-]);
 
-const formatCurrency = (value: any) => {
-    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-};
+const props = defineProps<{
+    ingredients: {
+        id: number;
+        name: string;
+        price: number;
+        size: number;
+        unit: string;
+    }[];
+    columns: {
+        field: string;
+        header: string;
+    }[];
+}>();
 
-const getSeverity = (product: any) => {
-    switch (product.inventoryStatus) {
-        case 'INSTOCK':
-            return 'success';
+const selectedUnit = ref(props.filters?.unit ?? '');
 
-        case 'LOWSTOCK':
-            return 'warn';
+const units = computed(() =>
+    [...new Set(props.ingredients.map(i => i.unit))]
+);
 
-        case 'OUTOFSTOCK':
-            return 'danger';
+watch(selectedUnit, (unit) => {
+    router.get(
+        ingredients({
+            query: {
+                unit: unit || undefined,
+            },
+        }).url,
+        {},
+        {
+            preserveState: true,
+            replace: true,
+        }
+    );
+});
 
-        default:
-            return null;
-    }
-};
 
 </script>
 
 <template>
     <Head title="Dashboard" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div
-            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-        >
+        <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
 
-            <DataTable :value="products" tableStyle="min-width: 50rem">
-                <template #header>
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-xl font-bold">Products</span>
-                        <Button icon="pi pi-refresh" rounded raised />
-                    </div>
-                </template>
-                <Column field="name" header="Name"></Column>
-                <Column header="Image">
-                    <template #body="slotProps">
-                        <img :src="`https://primefaces.org/cdn/primevue/images/product/${slotProps.data.image}`" :alt="slotProps.data.image" class="w-24 rounded" />
-                    </template>
-                </Column>
-                <Column field="price" header="Price">
-                    <template #body="slotProps">
-                        {{ formatCurrency(slotProps.data.price) }}
-                    </template>
-                </Column>
-                <Column field="category" header="Category"></Column>
-                <Column field="rating" header="Reviews">
-                    <template #body="slotProps">
-                        <Rating :modelValue="slotProps.data.rating" readonly />
-                    </template>
-                </Column>
-                <Column header="Status">
-                    <template #body="slotProps">
-                        <Tag :value="slotProps.data.inventoryStatus" :severity="getSeverity(slotProps.data)" />
-                    </template>
-                </Column>
-                <template #footer> In total there are {{ products ? products.length : 0 }} products. </template>
-            </DataTable>
+            <div class="flex items-center justify-between">
+                <!-- Фильтр -->
+                <select v-model="selectedUnit" class="rounded border px-3 py-2">
+                    <option value="">All units</option>
+                    <option v-for="unit in units" :key="unit" :value="unit">
+                        {{ unit }}
+                    </option>
+                </select>
+
+                <!-- Кнопка -->
+                <button
+                    class="rounded bg-blue-600 px-4 py-2 text-white"
+                    @click="router.visit('/ingredients/create')"
+                >
+                    + Add ingredient
+                </button>
+
+            </div>
+
+            <Table :rows="props.ingredients" :columns="props.columns"/>
 
         </div>
     </AppLayout>
