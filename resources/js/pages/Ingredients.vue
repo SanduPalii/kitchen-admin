@@ -47,7 +47,9 @@ watch(selectedUnit, (unit) => {
     );
 });
 
-
+const onDelete = (row: User) => {
+    console.log('delete', row.id)
+}
 </script>
 
 <template>
@@ -74,7 +76,7 @@ watch(selectedUnit, (unit) => {
 
             </div>
 
-            <Table :rows="props.ingredients" :columns="props.columns"/>
+            <Table :rows="props.ingredients" :columns="props.columns" @delete="onDelete"/>
 
         </div>
     </AppLayout>

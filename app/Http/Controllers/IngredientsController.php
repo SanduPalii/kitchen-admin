@@ -18,7 +18,8 @@ class IngredientsController extends Controller
           ['field'=> 'name', 'header' => 'Name'],
           ['field' => 'price', 'header' => 'Price'],
           ['field' => 'size', 'header' => 'Size'],
-          ['field' => 'unit', 'header' => 'Unit']
+          ['field' => 'unit', 'header' => 'Unit'],
+          ['field' => 'kg_price', 'header' => 'Price per kg']
         ];
 
         return Inertia::render('Ingredients', [
@@ -41,7 +42,7 @@ class IngredientsController extends Controller
             'unit' => 'required|string|max:50',
         ]);
 
-        $data['kg_price'] = $data['price'] * $data['size'];
+        $data['kg_price'] = $data['price'] / $data['size'];
 
         Ingredient::create($data);
 
