@@ -50,5 +50,13 @@ class IngredientsController extends Controller
             ->with('success', 'Ingredient created');
     }
 
+    public function destroy(Ingredient $ingredient)
+    {
+        $ingredient->delete();
+
+        return redirect()->route('ingredients')
+            ->with('success', 'Ingredient deleted');
+    }
+
 
 }

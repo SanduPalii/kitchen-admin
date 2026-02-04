@@ -4,6 +4,8 @@ import { ref, computed, watch } from 'vue';
 import Table from '@/components/ui/table/Table.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { ingredients  } from '@/routes';
+import ConfirmDialog from 'primevue/confirmdialog';
+import { useConfirm } from 'primevue/useconfirm';
 import { type BreadcrumbItem } from '@/types';
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -11,7 +13,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: ingredients().url,
     },
 ];
-
+const confirm = useConfirm();
 const props = defineProps<{
     ingredients: {
         id: number;
@@ -47,14 +49,27 @@ watch(selectedUnit, (unit) => {
     );
 });
 
-const onDelete = (row: User) => {
-    console.log('delete', row.id)
-}
+const onDelete = (row: any) => {
+    confirm.require({
+        message: `Вы уверены, что хотите удалить "${row.name}"?`,
+        header: 'Подтверждение удаления',
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Удалить',
+        rejectLabel: 'Отмена',
+        accept: () => {
+            router.delete(`/ingredients/${row.id}`, {
+                preserveScroll: true,
+            });
+        },
+    });
+};
 </script>
 
 <template>
     <Head title="Dashboard" />
     <AppLayout :breadcrumbs="breadcrumbs">
+        <ConfirmDialog />
+
         <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
 
             <div class="flex items-center justify-between">

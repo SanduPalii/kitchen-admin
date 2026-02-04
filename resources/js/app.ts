@@ -1,6 +1,8 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import Aura from '@primeuix/themes/lara';
+import PrimeVue from 'primevue/config';
+import ConfirmationService from 'primevue/confirmationservice';
 import 'primeicons/primeicons.css'
 import PrimeVue from 'primevue/config';
 import type { DefineComponent } from 'vue';
@@ -30,6 +32,8 @@ createInertiaApp({
                     }
                 }
             })
+            .use(PrimeVue)
+            .use(ConfirmationService)
             .mount(el);
     },
     progress: {

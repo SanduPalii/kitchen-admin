@@ -36,12 +36,11 @@ const emit = defineEmits<{
                     <a :href="'/ingredients/'+data.id">
                         <EyeIcon style="cursor: pointer;"/>
                     </a>
-                    <button
-                        class="p-button p-button-danger p-button-sm"
+                    <div
                         @click="emit('delete', data)"
                     >
                         <Trash2Icon style="cursor:pointer; color:var(--color-rose-600);"/>
-                    </button>
+                    </div>
                 </div>
             </template>
         </Column>
