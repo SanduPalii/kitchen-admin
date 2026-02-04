@@ -22,7 +22,13 @@ Route::prefix('ingredients')->middleware(['auth', 'verified'])->group(function (
     Route::get('/', [\App\Http\Controllers\IngredientsController::class, 'getData'])->name('ingredients');
     Route::get('/create', [\App\Http\Controllers\IngredientsController::class, 'create'])->name('ingredients.create');
     Route::post('/', [\App\Http\Controllers\IngredientsController::class, 'store'])->name('ingredients.store');
+    Route::get('/{ingredient}', [\App\Http\Controllers\IngredientsController::class, 'edit'])->name('ingredients.edit');
+    Route::put('/{ingredient}', [\App\Http\Controllers\IngredientsController::class, 'update'])->name('ingredients.update');
     Route::delete('/{ingredient}', [\App\Http\Controllers\IngredientsController::class, 'destroy'])->name('ingredients.destroy');
+});
+
+Route::prefix('components')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\IngredientsController::class, 'getData'])->name('components');
 });
 
 require __DIR__.'/settings.php';

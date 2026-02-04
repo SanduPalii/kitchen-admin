@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->decimal('price');
-            $table->integer('size');
+            $table->decimal('size');
             $table->decimal('kg_price');
             $table->enum('unit', ['kg', 'l', 'pcs']);
             $table->timestamps();

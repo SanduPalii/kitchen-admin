@@ -57,6 +57,29 @@ class IngredientsController extends Controller
         return redirect()->route('ingredients')
             ->with('success', 'Ingredient deleted');
     }
+    public function edit(Ingredient $ingredient)
+    {
+        return Inertia::render('crud/IngredientsEdit', [
+            'ingredient' => $ingredient,
+        ]);
+    }
+
+    public function update(Request $request, Ingredient $ingredient)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'size' => 'required|numeric|min:0.001',
+            'unit' => 'required|string|max:50',
+        ]);
+
+        $data['kg_price'] = $data['price'] / $data['size'];
+
+        $ingredient->update($data);
+
+        return redirect()->route('ingredients')
+            ->with('success', 'Ingredient updated');
+    }
 
 
 }

@@ -33,6 +33,11 @@ const mainNavItems: NavItem[] = [
         href: ingredients(),
         icon: Salad,
     },
+    {
+        title: 'Components',
+        href: ingredients(),
+        icon: Salad,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="T">
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import { Trash2Icon, EyeIcon } from 'lucide-vue-next';
+import { Trash2Icon, PencilIcon } from 'lucide-vue-next';
 
 
 defineProps<{
@@ -34,7 +34,7 @@ const emit = defineEmits<{
             <template #body="{ data }">
                 <div style="display:flex;gap: 10px;align-items:center;">
                     <a :href="'/ingredients/'+data.id">
-                        <EyeIcon style="cursor: pointer;"/>
+                        <PencilIcon style="cursor: pointer;"/>
                     </a>
                     <div
                         @click="emit('delete', data)"
