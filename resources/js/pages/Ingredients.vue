@@ -91,7 +91,7 @@ const onDelete = (row: any) => {
 
             </div>
 
-            <Table :rows="props.ingredients" :columns="props.columns" @delete="onDelete"/>
+            <Table :rows="props.ingredients" :columns="props.columns" update="ingredients" @delete="onDelete"/>
 
         </div>
     </AppLayout>

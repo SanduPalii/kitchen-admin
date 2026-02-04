@@ -11,6 +11,7 @@ defineProps<{
         header: string;
         body?: (row: T) => any;
     }[];
+    update: any
 }>();
 
 const emit = defineEmits<{
@@ -33,7 +34,7 @@ const emit = defineEmits<{
         <Column header="Actions" style="width: 120px">
             <template #body="{ data }">
                 <div style="display:flex;gap: 10px;align-items:center;">
-                    <a :href="'/ingredients/'+data.id">
+                    <a :href="`/${update}/`+data.id">
                         <PencilIcon style="cursor: pointer;"/>
                     </a>
                     <div

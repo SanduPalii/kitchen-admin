@@ -8,6 +8,8 @@ class ComponentItem extends Pivot
 {
     protected $table = 'component_items';
 
+    public $timestamps = true;
+
     protected $fillable = [
         'component_id',
         'ingredient_id',
