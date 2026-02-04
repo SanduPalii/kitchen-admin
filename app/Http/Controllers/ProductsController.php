@@ -14,6 +14,7 @@ class ProductsController extends Controller
 
         $columns = [
             ['field' => 'name_fi', 'header' => 'Name (FI)'],
+            ['field' => 'name_ee', 'header' => 'Name (EE)'],
             ['field' => 'name_en', 'header' => 'Name (EN)'],
             ['field' => 'type', 'header' => 'Type'],
         ];
