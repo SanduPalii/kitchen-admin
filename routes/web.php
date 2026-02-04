@@ -54,5 +54,14 @@ Route::prefix('locations')->middleware(['auth', 'verified'])->group(function () 
     Route::delete('/{location}', [\App\Http\Controllers\LocationsController::class, 'destroy'])->name('locations.destroy');
 });
 
+Route::prefix('clients')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\ClientsController::class, 'index'])->name('clients');
+    Route::get('/create', [\App\Http\Controllers\ClientsController::class, 'create'])->name('clients.create');
+    Route::post('/', [\App\Http\Controllers\ClientsController::class, 'store'])->name('clients.store');
+    Route::get('/{client}/edit', [\App\Http\Controllers\ClientsController::class, 'edit'])->name('clients.edit');
+    Route::put('/{client}', [\App\Http\Controllers\ClientsController::class, 'update'])->name('clients.update');
+    Route::delete('/{client}', [\App\Http\Controllers\ClientsController::class, 'destroy'])->name('clients.destroy');
+});
+
 
 require __DIR__.'/settings.php';

@@ -13,7 +13,8 @@ class Client extends Model
         'name',
         'phone',
         'location_id',
-        'active',
+        'approved',
+        'registered_at',
     ];
 
     public function orders()

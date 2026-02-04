@@ -15,13 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('phone');
-            $table->unsignedBigInteger('location_id');
-            $table->dateTime('date');
+            $table->foreignId('location_id')->constrained()->cascadeOnDelete();
+            $table->dateTime('registered_at')->nullable();   // вместо просто date (чуть семантичнее)
             $table->boolean('approved')->default(false);
             $table->timestamps();
-
-            $table->foreign('location_id')->references('id')->on('locations');
         });
+
     }
 
     /**
