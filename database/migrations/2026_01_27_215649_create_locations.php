@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('price');
+            $table->decimal('price', 10, 2); // цена доставки / надбавки
             $table->timestamps();
         });
+
     }
 
     /**
