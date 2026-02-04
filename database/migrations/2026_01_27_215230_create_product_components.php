@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('product_components', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('component_id');
-            $table->unsignedBigInteger('products_id');
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('component_id')->constrained()->cascadeOnDelete();
+            $table->decimal('quantity', 10, 3); // сколько компонента в продукте
             $table->timestamps();
 
-            $table->foreign('component_id')->references('id')->on('components')->cascadeOnDelete();
-            $table->foreign('products_id')->references('id')->on('products')->cascadeOnDelete();
+            $table->unique(['product_id', 'component_id']);
+            $table->index('product_id');
         });
+
     }
 
     /**

@@ -1,0 +1,88 @@
+<script setup lang="ts">
+import { Head, useForm } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue';
+import InputError from '@/components/InputError.vue';
+
+const props = defineProps<{
+    components: { id: number; name: string }[];
+}>();
+
+const form = useForm({
+    name_fi: '',
+    name_ee: '',
+    name_en: '',
+    type: 'base',
+    items: [{ component_id: null as number | null, quantity: 1 }],
+});
+
+const addRow = () => form.items.push({ component_id: null, quantity: 1 });
+const removeRow = (i: number) => form.items.splice(i, 1);
+const submit = () => form.post('/products');
+</script>
+
+<template>
+    <Head title="Create product" />
+    <AppLayout>
+        <div class="max-w-3xl space-y-4 rounded bg-white p-6 shadow">
+
+            <h1 class="text-xl font-bold">Create product</h1>
+
+            <input v-model="form.name_fi" class="w-full rounded border p-2" placeholder="Name (FI)" />
+            <InputError :message="form.errors.name_fi" />
+
+            <input v-model="form.name_ee" class="w-full rounded border p-2" placeholder="Name (EE)" />
+            <InputError :message="form.errors.name_ee" />
+
+            <input v-model="form.name_en" class="w-full rounded border p-2" placeholder="Name (EN)" />
+            <InputError :message="form.errors.name_en" />
+
+            <select v-model="form.type" class="w-full rounded border p-2">
+                <option value="base">Base</option>
+                <option value="vegan">Vegan</option>
+                <option value="vegetarian">Vegetarian</option>
+            </select>
+            <InputError :message="form.errors.type" />
+
+            <div class="space-y-2">
+                <div
+                    v-for="(item, i) in form.items"
+                    :key="i"
+                    class="flex gap-2 rounded border p-2"
+                >
+                    <select v-model="item.component_id" class="flex-1 rounded border p-2">
+                        <option :value="null" disabled>Select component</option>
+                        <option v-for="c in components" :key="c.id" :value="c.id">
+                            {{ c.name }}
+                        </option>
+                    </select>
+
+                    <input v-model.number="item.quantity" type="number" step="0.001" class="w-32 rounded border p-2" />
+
+                    <button
+                        v-if="form.items.length > 1"
+                        class="rounded bg-red-500 px-2 text-white"
+                        @click="removeRow(i)"
+                    >
+                        ✕
+                    </button>
+                </div>
+
+                <InputError :message="form.errors[`items.${i}.component_id`]" />
+                <InputError :message="form.errors[`items.${i}.quantity`]" />
+            </div>
+
+            <button class="rounded bg-gray-200 px-3 py-1" @click="addRow">
+                + Add component
+            </button>
+
+            <button
+                class="rounded bg-blue-600 px-4 py-2 text-white"
+                :disabled="form.processing"
+                @click="submit"
+            >
+                Save
+            </button>
+
+        </div>
+    </AppLayout>
+</template>

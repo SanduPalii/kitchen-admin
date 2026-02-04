@@ -21,21 +21,10 @@ class Product extends Model
         return $this->belongsToMany(
             Component::class,
             'product_components'
-        )->withPivot('quantity');
-    }
-
-    public function orders()
-    {
-        return $this->belongsToMany(
-            Order::class,
-            'order_products'
-        )->withPivot([
-            'price',
-            'packaging_price',
-            'production_price',
-            'transportation_price',
-            'multi_delivery_price',
-            'sell_percent'
-        ]);
+        )
+            ->using(ProductComponent::class)
+            ->withPivot('quantity')
+            ->withTimestamps();
     }
 }
+

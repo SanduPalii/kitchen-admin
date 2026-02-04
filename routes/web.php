@@ -36,5 +36,15 @@ Route::prefix('components')->middleware(['auth', 'verified'])->group(function ()
     Route::delete('/{component}', [\App\Http\Controllers\ComponentsController::class, 'destroy'])->name('components.destroy');
 });
 
+Route::prefix('products')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\ProductsController::class, 'index'])->name('products');
+    Route::get('/create', [\App\Http\Controllers\ProductsController::class, 'create'])->name('products.create');
+    Route::post('/', [\App\Http\Controllers\ProductsController::class, 'store'])->name('products.store');
+    Route::get('/{product}/edit', [\App\Http\Controllers\ProductsController::class, 'edit'])->name('products.edit');
+    Route::put('/{product}', [\App\Http\Controllers\ProductsController::class, 'update'])->name('products.update');
+    Route::delete('/{product}', [\App\Http\Controllers\ProductsController::class, 'destroy'])->name('products.destroy');
+});
+
+
 
 require __DIR__.'/settings.php';

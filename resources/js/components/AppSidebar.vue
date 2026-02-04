@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Calculator, Folder, LayoutGrid, Salad, Component } from 'lucide-vue-next';
+import { Calculator, LayoutGrid, Salad, Component, ShoppingBasket } from 'lucide-vue-next';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -13,7 +13,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, calculator, ingredients, components } from '@/routes';
+import { dashboard, calculator, ingredients, components, products } from '@/routes';
 import { type NavItem } from '@/types';
 import AppLogo from './AppLogo.vue';
 
@@ -37,6 +37,11 @@ const mainNavItems: NavItem[] = [
         title: 'Components',
         href: components(),
         icon: Component,
+    },
+    {
+        title: 'Products',
+        href: products(),
+        icon: ShoppingBasket,
     },
 ];
 

@@ -24,3 +24,4 @@ class ProductComponent extends Pivot
         return $this->belongsTo(Component::class);
     }
 }
+
