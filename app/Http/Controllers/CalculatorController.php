@@ -13,12 +13,36 @@ class CalculatorController extends Controller
 {
     public function index()
     {
+        $products = Product::with('components.ingredients')->get()->map(function ($product) {
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name_en,
+                'price_per_kg' => $product->price_per_kg ?? 0, // если есть поле
+                'components' => $product->components->map(function ($component) {
+
+                    // Себестоимость компонента (на 1 кг)
+                    $pricePerKg = $component->ingredients->reduce(function ($sum, $ingredient) {
+                        return $sum + ($ingredient->kg_price * $ingredient->pivot->quantity);
+                    }, 0);
+
+                    return [
+                        'id' => $component->id,
+                        'name' => $component->name,
+                        'grams' => (int) ($component->default_grams ?? 500), // дефолт для калькулятора
+                        'price_per_kg' => round($pricePerKg, 2),
+                    ];
+                })->values(),
+            ];
+        });
+
         return Inertia::render('Calculator', [
-            'products' => Product::with('components.ingredients')->get(),
+            'products' => $products,
             'clients' => Client::select('id', 'name')->get(),
             'locations' => Location::select('id', 'name', 'price')->get(),
         ]);
     }
+
 
     public function store(Request $request)
     {

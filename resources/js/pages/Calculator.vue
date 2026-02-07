@@ -21,19 +21,25 @@ type Product = {
  * ВРЕМЕННЫЕ ДАННЫЕ
  * Потом заменишь на props с бэка
  */
-const products = ref<Product[]>([
-    {
-        id: 1,
-        name: 'Chicken Tikka Masala',
-        price_per_kg: 8.27,
-        components: [
-            { id: 1, name: 'Protein', grams: 700, price_per_kg: 8.27 },
-            { id: 2, name: 'Gravy', grams: 300, price_per_kg: 4.5 },
-        ],
-    },
-])
+const props = defineProps<{
+    products: {
+        id: number
+        name: string
+        price_per_kg: number
+        components: {
+            id: number
+            name: string
+            grams: number
+            price_per_kg: number
+        }[]
+    }[]
+    clients: { id: number; name: string }[]
+    locations: { id: number; name: string; price: number }[]
+}>()
 
-const selectedProduct = ref<Product>(products.value[0])
+const products = ref(props.products)
+const selectedProduct = ref(products.value[0])
+
 
 const TOTAL_WEIGHT = 1000
 const step = 5
