@@ -14,9 +14,16 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('calculator', function () {
-    return Inertia::render('Calculator');
-})->middleware(['auth', 'verified'])->name('calculator');
+Route::prefix('calculator')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
+    Route::post('/', [\App\Http\Controllers\CalculatorController::class, 'store'])->name('calculator.store');
+});
+
+Route::prefix('orders')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\OrdersController::class, 'index'])->name('orders');
+    Route::get('/{order}', [\App\Http\Controllers\OrdersController::class, 'show'])->name('orders.show');
+});
+
 
 Route::prefix('ingredients')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [\App\Http\Controllers\IngredientsController::class, 'getData'])->name('ingredients');

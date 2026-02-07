@@ -12,12 +12,14 @@ class OrderProduct extends Pivot
         'order_id',
         'product_id',
         'price',
-        'packaging_price',
+        'packaging_material_price',
         'production_price',
+        'packaging_price',
         'transportation_price',
         'multi_delivery_price',
         'sell_percent',
     ];
+
 
     public function order()
     {

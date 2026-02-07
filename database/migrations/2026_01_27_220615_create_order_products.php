@@ -13,21 +13,24 @@ return new class extends Migration
     {
         Schema::create('order_products', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('order_id');
-            $table->unsignedBigInteger('product_id');
-            $table->integer('price');
-            $table->integer('packaging_material_price');
-            $table->integer('production_price');
-            $table->integer('packaging_price');
-            $table->integer('transportation_price');
-            $table->integer('multi_delivery_price');
-            $table->integer('selling_percent');
+
+            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained();
+
+            $table->decimal('price', 10, 4)->default(0);
+            $table->decimal('packaging_material_price', 10, 4)->default(0);
+            $table->decimal('production_price', 10, 4)->default(0);
+            $table->decimal('packaging_price', 10, 4)->default(0);
+            $table->decimal('transportation_price', 10, 4)->default(0);
+            $table->decimal('multi_delivery_price', 10, 4)->default(0);
+            $table->decimal('sell_percent', 5, 2)->default(0);
+
             $table->timestamps();
 
-            $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete();
-            $table->foreign('product_id')->references('id')->on('products');
+            $table->unique(['order_id', 'product_id']); // один продукт = одна строка в заказе
         });
     }
+
 
     /**
      * Reverse the migrations.
