@@ -25,11 +25,10 @@ class CalculatorController extends Controller
                     $pricePerKg = $component->ingredients->reduce(function ($sum, $ingredient) {
                         return $sum + ($ingredient->kg_price * $ingredient->pivot->quantity);
                     }, 0);
-
                     return [
                         'id' => $component->id,
                         'name' => $component->name,
-                        'grams' => (int) ($component->default_grams ?? 500), // дефолт для калькулятора
+                        'grams' => (int) ($component->pivot->quantity ?? 500), // дефолт для калькулятора
                         'price_per_kg' => round($pricePerKg, 2),
                     ];
                 })->values(),

@@ -17,29 +17,14 @@ type Product = {
     components: Component[]
 }
 
-/**
- * ВРЕМЕННЫЕ ДАННЫЕ
- * Потом заменишь на props с бэка
- */
 const props = defineProps<{
-    products: {
-        id: number
-        name: string
-        price_per_kg: number
-        components: {
-            id: number
-            name: string
-            grams: number
-            price_per_kg: number
-        }[]
-    }[]
+    products: Product[]
     clients: { id: number; name: string }[]
     locations: { id: number; name: string; price: number }[]
 }>()
 
 const products = ref(props.products)
-const selectedProduct = ref(products.value[0])
-
+const selectedProduct = ref<Product>(products.value[0])
 
 const TOTAL_WEIGHT = 1000
 const step = 5
@@ -54,30 +39,44 @@ const costs = ref({
 })
 
 /**
- * Обновление граммов с авто-нормализацией до 1000г
+ * Свободные граммы
  */
-const updateComponent = (index: number, delta: number) => {
-    const comps = selectedProduct.value.components
+const freeGrams = computed(() => {
+    const used = selectedProduct.value.components.reduce((s, c) => s + c.grams, 0)
+    return Math.max(0, TOTAL_WEIGHT - used)
+})
 
-    const newValue = comps[index].grams + delta
+/**
+ * Уменьшить компонент (освобождает граммы)
+ */
+const decreaseComponent = (index: number, delta: number) => {
+    const c = selectedProduct.value.components[index]
+    const newValue = c.grams - delta
     if (newValue < 0) return
-
-    comps[index].grams = newValue
-
-    const otherIndexes = comps
-        .map((_, i) => i)
-        .filter(i => i !== index)
-
-    const used = comps[index].grams
-    const remaining = TOTAL_WEIGHT - used
-
-    if (otherIndexes.length === 1) {
-        comps[otherIndexes[0]].grams = Math.max(0, remaining)
-    }
+    c.grams = newValue
 }
 
 /**
- * Цена за 1 кг
+ * Увеличить компонент (забирает свободные граммы)
+ */
+const increaseComponent = (index: number, delta: number) => {
+    if (freeGrams.value <= 0) return
+    const c = selectedProduct.value.components[index]
+    const add = Math.min(delta, freeGrams.value)
+    c.grams += add
+}
+
+/**
+ * Забрать ВСЕ свободные граммы
+ */
+const takeAllFree = (index: number) => {
+    if (freeGrams.value <= 0) return
+    const c = selectedProduct.value.components[index]
+    c.grams += freeGrams.value
+}
+
+/**
+ * Цена за 1 кг продукта
  */
 const pricePerKg = computed(() => {
     return selectedProduct.value.components.reduce((sum, c) => {
@@ -98,7 +97,6 @@ const finalPrice = computed(() => {
         costs.value.multi_delivery
 
     const percent = base * (costs.value.sell_percent / 100)
-
     return (base + percent).toFixed(2)
 })
 </script>
@@ -114,13 +112,9 @@ const finalPrice = computed(() => {
 
                 <!-- Select product -->
                 <div class="rounded-xl bg-white p-4 shadow">
-                    <div class="font-semibold mb-2">Add product</div>
+                    <div class="font-semibold mb-2">Select product</div>
                     <select v-model="selectedProduct" class="w-full rounded border p-2">
-                        <option
-                            v-for="p in products"
-                            :key="p.id"
-                            :value="p"
-                        >
+                        <option v-for="p in products" :key="p.id" :value="p">
                             {{ p.name }}
                         </option>
                     </select>
@@ -142,22 +136,30 @@ const finalPrice = computed(() => {
                         <div class="flex items-center gap-2">
                             <button
                                 class="h-8 w-8 rounded-full border"
-                                @click="updateComponent(i, -step)"
+                                @click="decreaseComponent(i, step)"
                             >-</button>
-
-                            <span class="text-xs">{{ step }}g</span>
 
                             <button
                                 class="h-8 w-8 rounded-full border"
-                                @click="updateComponent(i, step)"
+                                :disabled="freeGrams <= 0"
+                                @click="increaseComponent(i, step)"
                             >+</button>
+
+                            <button
+                                class="h-8 w-8 rounded-full border text-yellow-600"
+                                :disabled="freeGrams <= 0"
+                                title="Take all free grams"
+                                @click="takeAllFree(i)"
+                            >
+                                ⚡
+                            </button>
                         </div>
                     </div>
 
                     <div class="text-center mt-4">
-                        <span class="rounded-full bg-gray-100 px-4 py-1 text-sm">
-                            Price per kg: {{ pricePerKg.toFixed(2) }} €
-                        </span>
+            <span class="rounded-full bg-gray-100 px-4 py-1 text-sm">
+              Free grams: {{ freeGrams }} g · Price per kg: {{ pricePerKg.toFixed(2) }} €
+            </span>
                     </div>
                 </div>
 
