@@ -51,15 +51,15 @@ class CalculatorController extends Controller
             'size' => 'required|integer|min:1',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.final_price' => 'required|numeric|min:0',
             'items.*.sell_percent' => 'required|numeric|min:0',
         ]);
 
         $order = Order::create([
             'client_id' => $data['client_id'],
             'location_id' => $data['location_id'],
-            'user_id' => auth()->id(),
             'size' => $data['size'],
+            'user_id' => auth()->id(),
             'price' => 0,
             'approved' => false,
             'date' => now(),
@@ -68,14 +68,8 @@ class CalculatorController extends Controller
         $total = 0;
 
         foreach ($data['items'] as $item) {
-            $product = Product::with('components.ingredients')->find($item['product_id']);
-
-            $baseCost = $this->calculateProductCost($product);
-
-            $sellPrice = $baseCost + ($baseCost * $item['sell_percent'] / 100);
-
-            $order->products()->attach($product->id, [
-                'price' => $sellPrice,
+            $order->products()->attach($item['product_id'], [
+                'price' => $item['final_price'],
                 'packaging_material_price' => 0,
                 'production_price' => 0,
                 'packaging_price' => 0,
@@ -84,12 +78,12 @@ class CalculatorController extends Controller
                 'selling_percent' => $item['sell_percent'],
             ]);
 
-            $total += $sellPrice;
+            $total += $item['final_price'];
         }
 
         $order->update(['price' => $total]);
 
-        return redirect()->route('orders')->with('success', 'Order calculated');
+        return redirect()->route('orders')->with('success', 'Order saved');
     }
 
     private function calculateProductCost(Product $product): float

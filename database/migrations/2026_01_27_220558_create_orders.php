@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('location_id');
             $table->unsignedBigInteger('client_id');
             $table->unsignedBigInteger('user_id');
-            $table->integer('size');
+            $table->integer('size')->default(0);
             $table->dateTime('date');
             $table->boolean('approved')->default(false);
             $table->timestamps();

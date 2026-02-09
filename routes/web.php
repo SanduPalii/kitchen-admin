@@ -16,7 +16,7 @@ Route::get('dashboard', function () {
 
 Route::prefix('calculator')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [\App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
-    Route::post('/', [\App\Http\Controllers\CalculatorController::class, 'store'])->name('calculator.store');
+    Route::post('/store', [\App\Http\Controllers\CalculatorController::class, 'store'])->name('calculator.store');
 });
 
 Route::prefix('orders')->middleware(['auth', 'verified'])->group(function () {

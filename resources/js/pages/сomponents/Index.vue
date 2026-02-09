@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
+import ConfirmDialog from 'primevue/confirmdialog';
+import { useConfirm } from 'primevue/useconfirm';
 import { ref } from 'vue';
 import Table from '@/components/ui/table/Table.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import ConfirmDialog from 'primevue/confirmdialog';
-import { useConfirm } from 'primevue/useconfirm';
 import { components as componentsRoute } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 
@@ -33,11 +33,11 @@ const props = defineProps<{
 
 const onDelete = (row: any) => {
     confirm.require({
-        message: `Вы уверены, что хотите удалить компонент "${row.name}"?`,
-        header: 'Подтверждение удаления',
+        message: `Are you sure you want to remove the component? "${row.name}"?`,
+        header: 'Confirm delete',
         icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Удалить',
-        rejectLabel: 'Отмена',
+        acceptLabel: 'Delete',
+        rejectLabel: 'Cancel',
         accept: () => {
             router.delete(`/components/${row.id}`, {
                 preserveScroll: true,

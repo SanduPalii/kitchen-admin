@@ -10,16 +10,14 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'price',
         'client_id',
         'location_id',
         'user_id',
+        'price',
         'approved',
-        'size',
-        'date'
+        'date',
     ];
 
-    // Order.php
     public function products()
     {
         return $this->belongsToMany(Product::class, 'order_products')
@@ -30,7 +28,7 @@ class Order extends Model
                 'packaging_price',
                 'transportation_price',
                 'multi_delivery_price',
-                'sell_percent'
+                'selling_percent'
             ]);
     }
 
