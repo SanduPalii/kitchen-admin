@@ -9,6 +9,7 @@ const props = defineProps<{
 
 const form = useForm({
     name: '',
+    quantity: null,
     type: 'gravy',
     items: [{ ingredient_id: null as number | null, quantity: '0' }],
 });
@@ -59,6 +60,19 @@ const submit = () => {
                     <option value="side_dish">Side dish</option>
                 </select>
                 <InputError :message="form.errors.type" />
+            </div>
+
+            <!-- Type -->
+            <div class="grid gap-1">
+                <input
+                    v-model="form.quantity"
+                    type="number"
+                    step="1"
+                    min="1"
+                    class="w-full rounded border p-2"
+                    placeholder="Quantity kg"
+                />
+                <InputError :message="form.errors.quantity" />
             </div>
 
             <!-- Items -->

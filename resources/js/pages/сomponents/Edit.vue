@@ -8,6 +8,7 @@ const props = defineProps<{
         id: number;
         name: string;
         type: string;
+        quantity: number;
         ingredients: { id: number; pivot: { quantity: number } }[];
     };
     ingredients: { id: number; name: string }[];
@@ -16,6 +17,7 @@ const props = defineProps<{
 const form = useForm({
     name: props.component.name,
     type: props.component.type,
+    quantity: +props.component.quantity,
     items: props.component.ingredients.map(i => ({
         ingredient_id: i.id,
         quantity: String(i.pivot.quantity), // 👈 храним как строку для нормального ввода
@@ -67,6 +69,12 @@ const submit = () => {
                     <option value="side_dish">Side dish</option>
                 </select>
                 <InputError :message="form.errors.type" />
+            </div>
+
+            <!-- quantity -->
+            <div class="grid gap-1">
+                <input v-model="form.quantity" type="number" class="w-full rounded border p-2" />
+                <InputError :message="form.errors.quantity" />
             </div>
 
             <!-- Items -->

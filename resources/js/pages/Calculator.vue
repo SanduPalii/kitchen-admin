@@ -278,6 +278,50 @@ const saveOrder = () => {
                         </div>
                     </div>
 
+                    <!-- Costs -->
+                    <div class="rounded-xl bg-white p-4 shadow space-y-3">
+                        <div class="font-semibold">Additional costs</div>
+
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <label>
+                                Packaging material
+                                <input type="number" step="0.01" v-model.number="costs.packaging_material"
+                                       class="w-full rounded border p-2" />
+                            </label>
+
+                            <label>
+                                Production
+                                <input type="number" step="0.01" v-model.number="costs.production"
+                                       class="w-full rounded border p-2" />
+                            </label>
+
+                            <label>
+                                Packaging
+                                <input type="number" step="0.01" v-model.number="costs.packaging"
+                                       class="w-full rounded border p-2" />
+                            </label>
+
+                            <label>
+                                Transportation
+                                <input type="number" step="0.01" v-model.number="costs.transportation"
+                                       class="w-full rounded border p-2" />
+                            </label>
+
+                            <label>
+                                Multi delivery
+                                <input type="number" step="0.01" v-model.number="costs.multi_delivery"
+                                       class="w-full rounded border p-2" />
+                            </label>
+
+                            <label>
+                                Sell percent (%)
+                                <input type="number" step="1" v-model.number="costs.sell_percent"
+                                       class="w-full rounded border p-2" />
+                            </label>
+                        </div>
+                    </div>
+
+
                     <!-- Final -->
                     <div class="rounded-xl bg-white p-4 shadow text-center space-y-3">
                         <div class="text-gray-500 text-sm">Final price</div>

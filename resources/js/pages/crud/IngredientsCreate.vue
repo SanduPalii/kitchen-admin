@@ -21,7 +21,7 @@ const form = useForm({
     name: '',
     price: '',
     size: '',
-    unit: '',
+    unit: 'kg',
     kg_price: '',
 });
 const submit = () => {

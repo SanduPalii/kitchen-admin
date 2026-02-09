@@ -11,21 +11,33 @@ class ComponentsController extends Controller
 {
     public function index()
     {
+
         $components = Component::with('ingredients')->get()->map(function ($component) {
+
+            $cost = $component->ingredients->sum(function ($ing) {
+                return (float) $ing->kg_price * (float) $ing->pivot->quantity;
+            });
+
+            $costPerKg = $component->quantity > 0
+                ? $cost / (float) $component->quantity
+                : 0;
+
             return [
                 'id' => $component->id,
                 'name' => $component->name,
                 'type' => $component->type,
-                'cost' => $component->ingredients->sum(function ($ing) {
-                    return (float)$ing->kg_price * (float)$ing->pivot->quantity;
-                }),
+                'quantity' => $component->quantity,
+                'cost' => round($cost, 2),
+                'cost_per_kg' => round($costPerKg, 2),
             ];
         });
 
         $columns = [
             ['field' => 'name', 'header' => 'Name'],
             ['field' => 'type', 'header' => 'Type'],
+            ['field' => 'quantity', 'header' => 'Quantity'],
             ['field' => 'cost', 'header' => 'Cost'],
+            ['field' => 'cost_per_kg', 'header' => 'Cost per kg'],
         ];
 
         return Inertia::render('сomponents/Index', [
@@ -48,6 +60,7 @@ class ComponentsController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:gravy,protein,side_dish',
+            'quantity' => 'required|integer|min:1',
             'items' => 'required|array|min:1',
             'items.*.ingredient_id' => 'required|exists:ingredients,id',
             'items.*.quantity' => 'required|numeric|min:0.0001',
@@ -56,6 +69,7 @@ class ComponentsController extends Controller
         $component = Component::create([
             'name' => $data['name'],
             'type' => $data['type'],
+            'quantity' => $data['quantity'],
         ]);
 
         // sync ингредиенты с quantity
@@ -82,6 +96,7 @@ class ComponentsController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:gravy,protein,side_dish',
+            'quantity' => 'required|integer|min:1',
             'items' => 'required|array|min:1',
             'items.*.ingredient_id' => 'required|exists:ingredients,id',
             'items.*.quantity' => 'required|numeric|min:0.0001',
@@ -90,6 +105,7 @@ class ComponentsController extends Controller
         $component->update([
             'name' => $data['name'],
             'type' => $data['type'],
+            'quantity' => $data['quantity'],
         ]);
 
         $component->ingredients()->sync(

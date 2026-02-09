@@ -22,14 +22,19 @@ class CalculatorController extends Controller
                 'components' => $product->components->map(function ($component) {
 
                     // Себестоимость компонента (на 1 кг)
-                    $pricePerKg = $component->ingredients->reduce(function ($sum, $ingredient) {
-                        return $sum + ($ingredient->kg_price * $ingredient->pivot->quantity);
+                    $batchCost = $component->ingredients->reduce(function ($sum, $ingredient) {
+                        return $sum + ((float)$ingredient->kg_price * (float)$ingredient->pivot->quantity);
                     }, 0);
+
+                    $costPerKg = $component->quantity > 0
+                        ? $batchCost / (float)$component->quantity
+                        : 0;
+
                     return [
                         'id' => $component->id,
                         'name' => $component->name,
                         'grams' => (int) ($component->pivot->quantity ?? 500), // дефолт для калькулятора
-                        'price_per_kg' => round($pricePerKg, 2),
+                        'price_per_kg' => round($costPerKg, 2),
                     ];
                 })->values(),
             ];
@@ -43,8 +48,7 @@ class CalculatorController extends Controller
     }
 
 
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $data = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'location_id' => 'required|exists:locations,id',
@@ -52,6 +56,11 @@ class CalculatorController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.final_price' => 'required|numeric|min:0',
+            'items.*.packaging_material' => 'required|numeric|min:0',
+            'items.*.production' => 'required|numeric|min:0',
+            'items.*.packaging' => 'required|numeric|min:0',
+            'items.*.transportation' => 'required|numeric|min:0',
+            'items.*.multi_delivery' => 'required|numeric|min:0',
             'items.*.sell_percent' => 'required|numeric|min:0',
         ]);
 
@@ -70,12 +79,12 @@ class CalculatorController extends Controller
         foreach ($data['items'] as $item) {
             $order->products()->attach($item['product_id'], [
                 'price' => $item['final_price'],
-                'packaging_material_price' => 0,
-                'production_price' => 0,
-                'packaging_price' => 0,
-                'transportation_price' => 0,
-                'multi_delivery_price' => 0,
-                'selling_percent' => $item['sell_percent'],
+                'packaging_material_price' => $item['packaging_material'],
+                'production_price' =>  $item['production'],
+                'packaging_price' => $item['packaging'],
+                'transportation_price' => $item['transportation'],
+                'multi_delivery_price' => $item['multi_delivery'],
+                'sell_percent' => $item['sell_percent'],
             ]);
 
             $total += $item['final_price'];

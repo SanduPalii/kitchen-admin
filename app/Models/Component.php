@@ -8,7 +8,7 @@ class Component extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'type'];
+    protected $fillable = ['name', 'type', 'quantity'];
     protected $appends = ['cost'];
     public $timestamps = true;
 
