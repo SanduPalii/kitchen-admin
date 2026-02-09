@@ -5,8 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Order extends Model
-{
+class Order extends Model{
     use HasFactory;
 
     protected $fillable = [
@@ -18,8 +17,7 @@ class Order extends Model
         'date',
     ];
 
-    public function products()
-    {
+    public function products(){
         return $this->belongsToMany(Product::class, 'order_products')
             ->withPivot([
                 'price',
@@ -28,9 +26,11 @@ class Order extends Model
                 'packaging_price',
                 'transportation_price',
                 'multi_delivery_price',
-                'selling_percent'
-            ]);
+                'sell_percent',
+            ])
+            ->withTimestamps();
     }
+
 
 
 

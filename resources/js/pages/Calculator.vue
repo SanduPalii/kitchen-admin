@@ -171,32 +171,38 @@ const saveOrder = () => {
         return
     }
 
-    router.post(
-        '/calculator/store',
-        {
-            client_id: selectedClientId.value,
-            location_id: selectedLocationId.value,
-            size: orderItems.value.length, // обязательное поле в orders
-            items: orderItems.value.map(i => ({
-                product_id: i.product_id,
-                final_price: i.final_price,
-                sell_percent: costs.value.sell_percent,
-            })),
+    router.post('/calculator/store', {
+        client_id: selectedClientId.value,
+        location_id: selectedLocationId.value,
+        size: orderItems.value.length,
+        items: orderItems.value.map(i => ({
+            product_id: i.product_id,
+            final_price: i.final_price,
+
+            packaging_material: costs.value.packaging_material,
+            production: costs.value.production,
+            packaging: costs.value.packaging,
+            transportation: costs.value.transportation,
+            multi_delivery: costs.value.multi_delivery,
+            sell_percent: costs.value.sell_percent,
+        })),
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            orderItems.value = []
+            confirm.require({
+                header: 'Success',
+                message: 'Order saved successfully!',
+                icon: 'pi pi-check-circle',
+                acceptLabel: 'OK',
+            })
         },
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                orderItems.value = []
-                confirm.require({
-                    header: 'Success',
-                    message: 'Order saved successfully!',
-                    icon: 'pi pi-check-circle',
-                    acceptLabel: 'OK',
-                })
-            },
+        onError: (e) => {
+            console.error('SAVE ORDER ERROR', e)
         }
-    )
+    })
 }
+
 </script>
 
 <template>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Order;
@@ -64,35 +65,38 @@ class CalculatorController extends Controller
             'items.*.sell_percent' => 'required|numeric|min:0',
         ]);
 
-        $order = Order::create([
-            'client_id' => $data['client_id'],
-            'location_id' => $data['location_id'],
-            'size' => $data['size'],
-            'user_id' => auth()->id(),
-            'price' => 0,
-            'approved' => false,
-            'date' => now(),
-        ]);
+        return DB::transaction(function () use ($data) {
 
-        $total = 0;
-
-        foreach ($data['items'] as $item) {
-            $order->products()->attach($item['product_id'], [
-                'price' => $item['final_price'],
-                'packaging_material_price' => $item['packaging_material'],
-                'production_price' =>  $item['production'],
-                'packaging_price' => $item['packaging'],
-                'transportation_price' => $item['transportation'],
-                'multi_delivery_price' => $item['multi_delivery'],
-                'sell_percent' => $item['sell_percent'],
+            $order = Order::create([
+                'client_id' => $data['client_id'],
+                'location_id' => $data['location_id'],
+                'size' => $data['size'],
+                'user_id' => auth()->id(),
+                'price' => 0,
+                'approved' => false,
+                'date' => now(),
             ]);
 
-            $total += $item['final_price'];
-        }
+            $total = 0;
 
-        $order->update(['price' => $total]);
+            foreach ($data['items'] as $item) {
+                $order->products()->attach($item['product_id'], [
+                    'price' => $item['final_price'],
+                    'packaging_material_price' => $item['packaging_material'],
+                    'production_price' =>  $item['production'],
+                    'packaging_price' => $item['packaging'],
+                    'transportation_price' => $item['transportation'],
+                    'multi_delivery_price' => $item['multi_delivery'],
+                    'sell_percent' => $item['sell_percent'],
+                ]);
 
-        return redirect()->route('orders')->with('success', 'Order saved');
+                $total += $item['final_price'];
+            }
+
+            $order->update(['price' => $total]);
+
+            return redirect()->route('orders')->with('success', 'Order saved');
+        });
     }
 
     private function calculateProductCost(Product $product): float
