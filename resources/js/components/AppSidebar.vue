@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Calculator, LayoutGrid, Salad, Component, ShoppingBasket, MapPinHouse, Contact } from 'lucide-vue-next';
+import { Calculator, LayoutGrid, Salad, Component, ShoppingBasket, MapPinHouse, Contact, ListOrdered } from 'lucide-vue-next';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -13,7 +13,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, calculator, ingredients, components, products, locations, clients } from '@/routes';
+import { dashboard, calculator, ingredients, components, products, locations, clients, orders } from '@/routes';
 import { type NavItem } from '@/types';
 import AppLogo from './AppLogo.vue';
 
@@ -22,6 +22,11 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Orders',
+        href: orders(),
+        icon: ListOrdered,
     },
     {
         title: 'Calculator',
