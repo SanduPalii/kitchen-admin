@@ -25,11 +25,12 @@ class IngredientImportController extends Controller
             if ($i === 0) continue;
 
             try {
+                $kg_price = (float) $row[1] / (float) $row[2];
                 Ingredient::create([
                     'name'     => trim($row[0]),
                     'price'    => (float) $row[1],
                     'size'     => (float) $row[2],
-                    'kg_price' => (float) $row[3],
+                    'kg_price' => $kg_price,
                     'unit'     => $this->normalizeUnit($row[4]),
                 ]);
 
