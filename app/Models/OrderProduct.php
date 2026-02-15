@@ -26,6 +26,11 @@ class OrderProduct extends Pivot
         return $this->belongsTo(Order::class);
     }
 
+    public function components()
+    {
+        return $this->hasMany(OrderProductComponent::class, 'order_product_id');
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class);

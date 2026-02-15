@@ -185,6 +185,12 @@ const saveOrder = () => {
             transportation: costs.value.transportation,
             multi_delivery: costs.value.multi_delivery,
             sell_percent: costs.value.sell_percent,
+
+            components: i.components.map(c => ({
+                component_id: c.id,
+                grams: c.grams,
+                price_per_kg: c.price_per_kg,
+            })),
         })),
     }, {
         preserveScroll: true,

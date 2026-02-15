@@ -17,6 +17,12 @@ Route::get('dashboard', function () {
 Route::prefix('calculator')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [\App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
     Route::post('/store', [\App\Http\Controllers\CalculatorController::class, 'store'])->name('calculator.store');
+
+    Route::get('/{order}/edit', [\App\Http\Controllers\CalculatorController::class, 'edit'])
+        ->name('calculator.edit');
+
+    Route::put('/{order}', [\App\Http\Controllers\CalculatorController::class, 'update'])
+        ->name('calculator.update');
 });
 
 Route::prefix('orders')->middleware(['auth', 'verified'])->group(function () {
