@@ -13,14 +13,14 @@ class OrderProductComponent extends Model
         'price_per_kg',
     ];
 
-    public function component()
-    {
-        return $this->belongsTo(Component::class);
-    }
-
     public function orderProduct()
     {
         return $this->belongsTo(OrderProduct::class);
+    }
+
+    public function component()
+    {
+        return $this->belongsTo(Component::class);
     }
 }
 

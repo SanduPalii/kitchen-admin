@@ -17,7 +17,8 @@ class Order extends Model{
         'date',
     ];
 
-    public function products(){
+    public function products()
+    {
         return $this->belongsToMany(Product::class, 'order_products')
             ->withPivot([
                 'price',
@@ -30,6 +31,7 @@ class Order extends Model{
             ])
             ->withTimestamps();
     }
+
 
     public function orderProducts()
     {

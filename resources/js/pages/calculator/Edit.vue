@@ -42,7 +42,11 @@ const props = defineProps<{
             transportation: number
             multi_delivery: number
             sell_percent: number
-            components: object
+            components: {
+                component_id: number
+                grams: number
+                price_per_kg: number
+            }[]
         }[]
     }
     products: Product[]
@@ -59,11 +63,30 @@ function cloneProduct(p?: Product | null): Product | null {
 }
 
 const products = ref<Product[]>(props.products)
+function buildSelectedProductFromOrder() {
+    const firstItem = props.order.items?.[0]
+    if (!firstItem) return null
 
+    const product = products.value.find(p => p.id === firstItem.product_id)
+    if (!product) return null
+
+    return {
+        ...product,
+        components: product.components.map(pc => {
+            const fromOrder = firstItem.components.find(c => c.component_id === pc.id)
+
+            return {
+                id: pc.id,
+                name: pc.name,
+                grams: fromOrder?.grams ?? pc.grams,           // 👉 граммы из заказа
+                price_per_kg: fromOrder?.price_per_kg ?? pc.price_per_kg,
+            }
+        })
+    }
+}
 const selectedProductId = ref<number | null>(props.order.items[0]?.product_id ?? null)
-const selectedProduct = ref<Product | null>(cloneProduct(
-    products.value.find(p => p.id === selectedProductId.value)
-))
+const selectedProduct = ref<Product | null>(buildSelectedProductFromOrder())
+
 
 const selectedClientId = ref<number | null>(props.order.client_id)
 const selectedLocationId = ref<number | null>(props.order.location_id)
@@ -99,15 +122,45 @@ const costs = ref({
 })
 
 watch(selectedProductId, (id) => {
-    const p = products.value.find(p => p.id === id) ?? null
-    selectedProduct.value = cloneProduct(p)
+    const item = props.order.items.find(i => i.product_id === id)
+    const product = products.value.find(p => p.id === id)
+
+    if (!product) {
+        selectedProduct.value = null
+        return
+    }
+
+    selectedProduct.value = {
+        ...product,
+        components: product.components.map(pc => {
+            const fromOrder = item?.components.find(c => c.component_id === pc.id)
+
+            return {
+                id: pc.id,
+                name: pc.name,
+                grams: fromOrder?.grams ?? pc.grams,
+                price_per_kg: fromOrder?.price_per_kg ?? pc.price_per_kg,
+            }
+        })
+    }
 })
 
-const freeGrams = computed(() => {
-    if (!selectedProduct.value) return 0
-    const used = selectedProduct.value.components.reduce((s, c) => s + (Number(c.grams) || 0), 0)
-    return Math.max(0, TOTAL_WEIGHT - used)
-})
+watch(selectedProduct, (product) => {
+    if (!product) return
+
+    const item = orderItems.value.find(i => i.product_id === product.id)
+    if (!item) return
+
+    item.components = product.components.map(c => ({
+        id: c.id,
+        name: c.name,
+        grams: c.grams,
+        price_per_kg: c.price_per_kg,
+    }))
+
+    item.final_price = finalPrice.value
+}, { deep: true })
+
 
 const pricePerKg = computed(() => {
     if (!selectedProduct.value) return 0
@@ -129,6 +182,30 @@ const finalPrice = computed(() => {
     return +(base + percent).toFixed(2)
 })
 
+const freeGrams = computed(() => {
+    if (!selectedProduct.value) return 0
+    const used = selectedProduct.value.components.reduce((s, c) => s + (Number(c.grams) || 0), 0)
+    return Math.max(0, TOTAL_WEIGHT - used)
+})
+
+
+const decreaseComponent = (i: number, delta = 10) => {
+    if (!selectedProduct.value) return
+    const c = selectedProduct.value.components[i]
+    c.grams = Math.max(0, c.grams - delta)
+}
+
+const increaseComponent = (i: number, delta = 10) => {
+    if (!selectedProduct.value) return
+    if (freeGrams.value <= 0) return
+
+    const c = selectedProduct.value.components[i]
+    const add = Math.min(delta, freeGrams.value)
+    c.grams += add
+}
+
+
+
 const saveOrder = () => {
     router.put(`/calculator/${props.order.id}`, {
         client_id: selectedClientId.value,
@@ -143,6 +220,12 @@ const saveOrder = () => {
             transportation: costs.value.transportation,
             multi_delivery: costs.value.multi_delivery,
             sell_percent: costs.value.sell_percent,
+
+            components: i.components.map(c => ({
+                component_id: c.id,
+                grams: c.grams,
+                price_per_kg: c.price_per_kg,
+            })),
         })),
     }, {
         preserveScroll: true,
@@ -199,11 +282,16 @@ const saveOrder = () => {
                             <div class="text-sm uppercase text-gray-500">{{ c.name }}</div>
                             <div class="text-xl font-semibold">{{ c.grams }} g</div>
                         </div>
+
+                        <div class="flex items-center gap-2">
+                            <button class="h-8 w-8 rounded-full border" @click="decreaseComponent(i)">-</button>
+                            <button class="h-8 w-8 rounded-full border" @click="increaseComponent(i)">+</button>
+                        </div>
                     </div>
 
                     <div class="text-center mt-4">
                         <span class="rounded-full bg-gray-100 px-4 py-1 text-sm">
-                            Price/kg: {{ pricePerKg.toFixed(2) }} €
+                            Free grams: {{ freeGrams }} g · Price/kg: {{ pricePerKg.toFixed(2) }} €
                         </span>
                     </div>
                 </div>

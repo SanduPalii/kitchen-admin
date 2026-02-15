@@ -138,39 +138,14 @@ class CalculatorController extends Controller
 
     public function edit(Order $order)
     {
-        $order->load(['orderProducts.components.component', 'products.components']);
+        $order->load([
+            'products',
+        ]);
 
-
-        $items = [];
-
-        foreach ($order->products as $product) {
-            $orderProduct = DB::table('order_products')
-                ->where('order_id', $order->id)
-                ->where('product_id', $product->id)
-                ->first();
-
-            $components = DB::table('order_product_components')
-                ->where('order_product_id', $orderProduct->id)
-                ->get()
-                ->map(fn ($c) => [
-                    'component_id' => $c->component_id,
-                    'grams' => (float)$c->grams,
-                    'price_per_kg' => (float)$c->price_per_kg,
-                ])
-                ->values();
-
-            $items[] = [
-                'product_id' => $product->id,
-                'final_price' => (float)$orderProduct->price,
-                'packaging_material' => (float)$orderProduct->packaging_material_price,
-                'production' => (float)$orderProduct->production_price,
-                'packaging' => (float)$orderProduct->packaging_price,
-                'transportation' => (float)$orderProduct->transportation_price,
-                'multi_delivery' => (float)$orderProduct->multi_delivery_price,
-                'sell_percent' => (float)$orderProduct->sell_percent,
-                'components' => $components,
-            ];
-        }
+        $orderProducts = \App\Models\OrderProduct::with(['components.component'])
+            ->where('order_id', $order->id)
+            ->get()
+            ->keyBy('product_id');
 
         return Inertia::render('calculator/Edit', [
             'order' => [
@@ -178,27 +153,29 @@ class CalculatorController extends Controller
                 'client_id' => $order->client_id,
                 'location_id' => $order->location_id,
                 'size' => $order->size,
-                'items' => $items,
+                'items' => $order->products->map(function ($product) use ($orderProducts) {
+                    $orderProduct = $orderProducts[$product->id];
+
+                    return [
+                        'product_id' => $product->id,
+                        'final_price' => (float) $product->pivot->price,
+                        'packaging_material' => (float) $product->pivot->packaging_material_price,
+                        'production' => (float) $product->pivot->production_price,
+                        'packaging' => (float) $product->pivot->packaging_price,
+                        'transportation' => (float) $product->pivot->transportation_price,
+                        'multi_delivery' => (float) $product->pivot->multi_delivery_price,
+                        'sell_percent' => (float) $product->pivot->sell_percent,
+                        'components' => $orderProduct->components->map(fn ($c) => [
+                            'component_id' => $c->component_id,
+                            'name' => $c->component->name,
+                            'grams' => (int) $c->grams,
+                            'price_per_kg' => (float) $c->price_per_kg,
+                        ])->values(),
+                    ];
+                })->values(),
             ],
-            'products' => Product::with('components.ingredients')->get()->map(function ($product) {
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name_en,
-                    'components' => $product->components->map(function ($component) {
 
-                        $batchCost = $component->ingredients->reduce(function ($sum, $ingredient) {
-                            return $sum + ((float)$ingredient->kg_price * (float)$ingredient->pivot->quantity);
-                        }, 0);
-
-                        return [
-                            'id' => $component->id,
-                            'name' => $component->name,
-                            'grams' => (int)($component->pivot->quantity ?? 500),
-                            'price_per_kg' => round($batchCost, 2),
-                        ];
-                    })->values(),
-                ];
-            }),
+            'products' => Product::with('components')->get(),
             'clients' => Client::select('id', 'name')->get(),
             'locations' => Location::select('id', 'name', 'price')->get(),
         ]);
@@ -245,9 +222,12 @@ class CalculatorController extends Controller
 
             $total = 0;
 
-            foreach ($data['items'] as $item) {
+            foreach ($request->items as $item) {
+                $orderProduct = OrderProduct::where('order_id', $order->id)
+                    ->where('product_id', $item['product_id'])
+                    ->firstOrFail();
 
-                $order->products()->attach($item['product_id'], [
+                $orderProduct->update([
                     'price' => $item['final_price'],
                     'packaging_material_price' => $item['packaging_material'],
                     'production_price' => $item['production'],
@@ -257,22 +237,17 @@ class CalculatorController extends Controller
                     'sell_percent' => $item['sell_percent'],
                 ]);
 
-                $orderProductId = DB::table('order_products')
-                    ->where('order_id', $order->id)
-                    ->where('product_id', $item['product_id'])
-                    ->value('id');
+                $orderProduct->components()->delete();
 
-                foreach ($item['components'] as $component) {
-                    \App\Models\OrderProductComponent::create([
-                        'order_product_id' => $orderProductId,
-                        'component_id' => $component['component_id'],
-                        'grams' => $component['grams'],
-                        'price_per_kg' => $component['price_per_kg'],
+                foreach ($item['components'] as $c) {
+                    $orderProduct->components()->create([
+                        'component_id' => $c['component_id'],
+                        'grams' => $c['grams'],
+                        'price_per_kg' => $c['price_per_kg'],
                     ]);
                 }
-
-                $total += $item['final_price'];
             }
+
 
             $order->update(['price' => $total]);
 
