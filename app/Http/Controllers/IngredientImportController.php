@@ -31,7 +31,7 @@ class IngredientImportController extends Controller
                     'price'    => (float) $row[1],
                     'size'     => (float) $row[2],
                     'kg_price' => $kg_price,
-                    'unit'     => $this->normalizeUnit($row[4]),
+                    'unit'     => $this->normalizeUnit($row[3]),
                 ]);
 
                 $created++;
@@ -55,9 +55,9 @@ class IngredientImportController extends Controller
         $unit = strtolower(trim($unit));
 
         return match ($unit) {
-            'kg', 'килограмм', 'kilogram' => 'kg',
-            'l', 'liter', 'литр' => 'l',
-            'pcs', 'piece', 'шт' => 'pcs',
+            'kg', 'kilo', 'kilogram' => 'kg',
+            'l', 'liter', 'ml', 'litres' => 'l',
+            'pcs', 'piece', 'nos.', 'pieces' => 'pcs',
             default => 'kg',
         };
     }
