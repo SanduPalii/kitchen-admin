@@ -381,6 +381,7 @@ const saveOrder = () => {
                     <button class="w-full rounded bg-blue-600 py-2 text-white" @click="saveOrder">
                         Save order
                     </button>
+
                 </div>
             </div>
         </div>

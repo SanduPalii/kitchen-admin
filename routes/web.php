@@ -31,6 +31,10 @@ Route::prefix('orders')->middleware(['auth', 'verified'])->group(function () {
     Route::delete('/{order}', [\App\Http\Controllers\OrdersController::class, 'destroy'])
         ->name('orders.destroy');
 
+    Route::get('/{order}/pdf', [\App\Http\Controllers\OrdersController::class, 'pdf'])->name('orders.pdf');
+    Route::get('/{order}/pdf/preview', [\App\Http\Controllers\OrdersController::class, 'pdfPreview'])->name('orders.pdf.preview');
+
+
 });
 
 

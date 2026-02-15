@@ -3,7 +3,7 @@ import { Head, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
-import { PencilIcon, Trash2Icon } from 'lucide-vue-next'
+import { PencilIcon, Trash2Icon, EyeIcon, DownloadIcon } from 'lucide-vue-next'
 
 const confirm = useConfirm()
 
@@ -102,6 +102,14 @@ const deleteOrder = (id: number) => {
                                 >
                                     <Trash2Icon class="w-5 h-5" />
                                 </button>
+
+                                <a :href="`/orders/${o.id}/pdf/preview`" target="_blank" class="text-blue-600 hover:text-blue-800 transition">
+                                    <EyeIcon/>
+                                </a>
+
+                                <a :href="`/orders/${o.id}/pdf`" class="text-green-600 hover:text-green-800 transition">
+                                    <DownloadIcon/>
+                                </a>
                             </div>
                         </td>
                     </tr>
