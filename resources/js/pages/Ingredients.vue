@@ -51,11 +51,11 @@ watch(selectedUnit, (unit) => {
 
 const onDelete = (row: any) => {
     confirm.require({
-        message: `Вы уверены, что хотите удалить "${row.name}"?`,
-        header: 'Подтверждение удаления',
+        message: `Are you sure you want to delete "${row.name}"?`,
+        header: 'Confirm delete',
         icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Удалить',
-        rejectLabel: 'Отмена',
+        acceptLabel: 'Delete',
+        rejectLabel: 'Cancel',
         accept: () => {
             router.delete(`/ingredients/${row.id}`, {
                 preserveScroll: true,

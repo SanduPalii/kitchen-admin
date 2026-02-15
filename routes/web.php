@@ -28,6 +28,9 @@ Route::prefix('calculator')->middleware(['auth', 'verified'])->group(function ()
 Route::prefix('orders')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [\App\Http\Controllers\OrdersController::class, 'index'])->name('orders');
     Route::get('/{order}', [\App\Http\Controllers\OrdersController::class, 'show'])->name('orders.show');
+    Route::delete('/{order}', [\App\Http\Controllers\OrdersController::class, 'destroy'])
+        ->name('orders.destroy');
+
 });
 
 

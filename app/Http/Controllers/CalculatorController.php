@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Client;
 use App\Models\Location;
+use App\Models\OrderProduct;
 
 class CalculatorController extends Controller
 {
@@ -213,21 +214,14 @@ class CalculatorController extends Controller
                 'size' => $data['size'],
             ]);
 
-            DB::table('order_product_components')
-                ->whereIn('order_product_id', function ($q) use ($order) {
-                    $q->select('id')->from('order_products')->where('order_id', $order->id);
-                })->delete();
-
+            // Удаляем старые связи
             $order->products()->detach();
 
             $total = 0;
 
-            foreach ($request->items as $item) {
-                $orderProduct = OrderProduct::where('order_id', $order->id)
-                    ->where('product_id', $item['product_id'])
-                    ->firstOrFail();
+            foreach ($data['items'] as $item) {
 
-                $orderProduct->update([
+                $order->products()->attach($item['product_id'], [
                     'price' => $item['final_price'],
                     'packaging_material_price' => $item['packaging_material'],
                     'production_price' => $item['production'],
@@ -236,6 +230,10 @@ class CalculatorController extends Controller
                     'multi_delivery_price' => $item['multi_delivery'],
                     'sell_percent' => $item['sell_percent'],
                 ]);
+
+                $orderProduct = OrderProduct::where('order_id', $order->id)
+                    ->where('product_id', $item['product_id'])
+                    ->first();
 
                 $orderProduct->components()->delete();
 
@@ -246,13 +244,15 @@ class CalculatorController extends Controller
                         'price_per_kg' => $c['price_per_kg'],
                     ]);
                 }
-            }
 
+                $total += $item['final_price'];
+            }
 
             $order->update(['price' => $total]);
 
             return redirect()->route('orders')->with('success', 'Order updated');
         });
+
     }
 
 }

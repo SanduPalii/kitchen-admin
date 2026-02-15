@@ -170,3 +170,7 @@
         @apply bg-background text-foreground;
     }
 }
+
+.hidden_btn{
+    display: none !important;
+}

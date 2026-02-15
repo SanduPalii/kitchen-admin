@@ -118,6 +118,8 @@ const addToOrder = () => {
             message: 'Please select a client before adding a product to the order.',
             icon: 'pi pi-info-circle',
             acceptLabel: 'OK',
+            rejectLabel: '',
+            rejectClass: 'hidden_btn',
         })
         return
     }
@@ -128,6 +130,8 @@ const addToOrder = () => {
             message: 'Create at least one product first.',
             icon: 'pi pi-info-circle',
             acceptLabel: 'OK',
+            rejectLabel: '',
+            rejectClass: 'hidden_btn',
         })
         return
     }
@@ -147,6 +151,8 @@ const saveOrder = () => {
             message: 'Please select a client before saving the order.',
             icon: 'pi pi-info-circle',
             acceptLabel: 'OK',
+            rejectLabel: '',
+            rejectClass: 'hidden_btn',
         })
         return
     }
@@ -157,6 +163,8 @@ const saveOrder = () => {
             message: 'Please select a location before saving the order.',
             icon: 'pi pi-info-circle',
             acceptLabel: 'OK',
+            rejectLabel: '',
+            rejectClass: 'hidden_btn',
         })
         return
     }
@@ -167,6 +175,8 @@ const saveOrder = () => {
             message: 'Add at least one product to the order.',
             icon: 'pi pi-info-circle',
             acceptLabel: 'OK',
+            rejectLabel: '',
+            rejectClass: 'hidden_btn',
         })
         return
     }
@@ -201,6 +211,8 @@ const saveOrder = () => {
                 message: 'Order saved successfully!',
                 icon: 'pi pi-check-circle',
                 acceptLabel: 'OK',
+                rejectLabel: '',
+                rejectClass: 'hidden_btn',
             })
         },
         onError: (e) => {
