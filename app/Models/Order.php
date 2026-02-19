@@ -28,6 +28,8 @@ class Order extends Model{
                 'transportation_price',
                 'multi_delivery_price',
                 'sell_percent',
+                'portion_grams',
+                'units_per_box',
             ])
             ->withTimestamps();
     }

@@ -16,6 +16,8 @@ return new class extends Migration
 
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained();
+            $table->integer('portion_grams')->nullable();
+            $table->integer('units_per_box')->nullable();
 
             $table->decimal('price', 10, 4)->default(0);
             $table->decimal('packaging_material_price', 10, 4)->default(0);

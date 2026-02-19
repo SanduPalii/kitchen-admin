@@ -67,11 +67,14 @@ class CalculatorController extends Controller
             'items.*.transportation' => 'required|numeric|min:0',
             'items.*.multi_delivery' => 'required|numeric|min:0',
             'items.*.sell_percent' => 'required|numeric|min:0',
+            'items.*.portion_grams' => 'required|integer|min:1',
+            'items.*.units_per_box' => 'required|integer|min:1',
 
             'items.*.components' => 'required|array|min:1',
             'items.*.components.*.component_id' => 'required|exists:components,id',
             'items.*.components.*.grams' => 'required|integer|min:0',
             'items.*.components.*.price_per_kg' => 'required|numeric|min:0',
+
         ]);
 
         return DB::transaction(function () use ($data) {
@@ -98,6 +101,9 @@ class CalculatorController extends Controller
                     'transportation_price' => $item['transportation'],
                     'multi_delivery_price' => $item['multi_delivery'],
                     'sell_percent' => $item['sell_percent'],
+
+                    'portion_grams' => $item['portion_grams'],
+                    'units_per_box' => $item['units_per_box'],
                 ]);
 
                 $orderProduct = DB::table('order_products')
@@ -166,6 +172,8 @@ class CalculatorController extends Controller
                         'transportation' => (float) $product->pivot->transportation_price,
                         'multi_delivery' => (float) $product->pivot->multi_delivery_price,
                         'sell_percent' => (float) $product->pivot->sell_percent,
+                        'portion_grams' => (int) ($product->pivot->portion_grams ?? 100),
+                        'units_per_box' => (int) ($product->pivot->units_per_box ?? 1),
                         'components' => $orderProduct->components->map(fn ($c) => [
                             'component_id' => $c->component_id,
                             'name' => $c->component->name,
@@ -199,6 +207,8 @@ class CalculatorController extends Controller
             'items.*.transportation' => 'required|numeric|min:0',
             'items.*.multi_delivery' => 'required|numeric|min:0',
             'items.*.sell_percent' => 'required|numeric|min:0',
+            'items.*.portion_grams' => 'required|integer|min:1',
+            'items.*.units_per_box' => 'required|integer|min:1',
 
             'items.*.components' => 'required|array|min:1',
             'items.*.components.*.component_id' => 'required|exists:components,id',
@@ -229,6 +239,8 @@ class CalculatorController extends Controller
                     'transportation_price' => $item['transportation'],
                     'multi_delivery_price' => $item['multi_delivery'],
                     'sell_percent' => $item['sell_percent'],
+                    'portion_grams' => $item['portion_grams'],
+                    'units_per_box' => $item['units_per_box'],
                 ]);
 
                 $orderProduct = OrderProduct::where('order_id', $order->id)

@@ -23,6 +23,8 @@ type OrderItem = {
     product_name: string
     components: Component[]
     final_price: number
+    portion_grams: number
+    units_per_box: number
 }
 
 const confirm = useConfirm()
@@ -45,6 +47,9 @@ const selectedClientId = ref<number | null>(null)
 const selectedLocationId = ref<number | null>(props.locations?.[0]?.id ?? null)
 
 const orderItems = ref<OrderItem[]>([])
+
+const portionGrams = ref<number>(100)
+const unitsPerBox = ref<number>(4)
 
 const costs = ref({
     packaging_material: 0.45,
@@ -141,7 +146,12 @@ const addToOrder = () => {
         product_name: selectedProduct.value.name,
         components: selectedProduct.value.components.map(c => ({ ...c })),
         final_price: finalPrice.value,
+        portion_grams: portionGrams.value,
+        units_per_box: unitsPerBox.value,
     })
+
+    portionGrams.value = 100
+    unitsPerBox.value = 4
 }
 
 const saveOrder = () => {
@@ -188,6 +198,8 @@ const saveOrder = () => {
         items: orderItems.value.map(i => ({
             product_id: i.product_id,
             final_price: i.final_price,
+            portion_grams: i.portion_grams,
+            units_per_box: i.units_per_box,
 
             packaging_material: costs.value.packaging_material,
             production: costs.value.production,
@@ -346,10 +358,35 @@ const saveOrder = () => {
                     </div>
 
 
+                    <!-- Portion & Box -->
+                    <div class="rounded-xl bg-white p-4 shadow space-y-3">
+                        <div class="font-semibold">Portion & packaging</div>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <label>
+                                Portion weight (g)
+                                <input type="number" step="1" min="1" v-model.number="portionGrams"
+                                       class="w-full rounded border p-2" />
+                            </label>
+                            <label>
+                                Units per box
+                                <input type="number" step="1" min="1" v-model.number="unitsPerBox"
+                                       class="w-full rounded border p-2" />
+                            </label>
+                        </div>
+                        <div class="text-xs text-gray-500 text-center">
+                            1 kg → {{ portionGrams > 0 ? (1000 / portionGrams).toFixed(1) : '—' }} portions ·
+                            box = {{ portionGrams > 0 ? (portionGrams * unitsPerBox / 1000).toFixed(3) : '—' }} kg
+                        </div>
+                    </div>
+
                     <!-- Final -->
                     <div class="rounded-xl bg-white p-4 shadow text-center space-y-3">
-                        <div class="text-gray-500 text-sm">Final price</div>
+                        <div class="text-gray-500 text-sm">Final price per kg</div>
                         <div class="text-3xl font-bold text-blue-600">{{ finalPrice }} €</div>
+                        <div v-if="portionGrams > 0" class="text-sm text-gray-500">
+                            Per portion ({{ portionGrams }}g): {{ (finalPrice * portionGrams / 1000).toFixed(4) }} € ·
+                            Per box (×{{ unitsPerBox }}): {{ (finalPrice * portionGrams / 1000 * unitsPerBox).toFixed(4) }} €
+                        </div>
 
                         <button class="rounded bg-green-600 px-4 py-2 text-white" @click="addToOrder">
                             ➕ Add to order
@@ -369,7 +406,10 @@ const saveOrder = () => {
 
                     <div v-for="(item, i) in orderItems" :key="i" class="border rounded p-2">
                         <div class="font-semibold">{{ item.product_name }}</div>
-                        <div class="text-xs text-gray-500">{{ item.final_price }} €</div>
+                        <div class="text-xs text-gray-500">{{ item.final_price }} €/kg</div>
+                        <div class="text-xs text-gray-500 mt-0.5">
+                            {{ item.portion_grams }}g × {{ item.units_per_box }} pcs/box
+                        </div>
 
                         <ul class="text-xs mt-1">
                             <li v-for="c in item.components" :key="c.id">
