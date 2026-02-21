@@ -2,6 +2,7 @@
 import { Head, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import InputError from '@/components/InputError.vue';
+import Select from 'primevue/select';
 
 const props = defineProps<{
     components: { id: number; name: string }[];
@@ -49,12 +50,18 @@ const submit = () => form.post('/products');
                     :key="i"
                     class="flex gap-2 rounded py-2"
                 >
-                    <select v-model="item.component_id" class="flex-1 rounded border p-2">
-                        <option :value="null" disabled>Select component</option>
-                        <option v-for="c in components" :key="c.id" :value="c.id">
-                            {{ c.name }}
-                        </option>
-                    </select>
+                    <div class="flex-1">
+                        <Select
+                            v-model="item.component_id"
+                            :options="components"
+                            optionLabel="name"
+                            optionValue="id"
+                            filter
+                            filterPlaceholder="Search..."
+                            placeholder="Select component"
+                            class="w-full"
+                        />
+                    </div>
 
                     <input v-model.number="item.quantity" type="number" step="0.001" class="w-32 rounded border p-2" />
 

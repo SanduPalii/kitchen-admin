@@ -2,10 +2,19 @@
 import { Head, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import InputError from '@/components/InputError.vue';
+import Select from 'primevue/select';
+import { computed, ref } from 'vue';
 
 const props = defineProps<{
     ingredients: { id: number; name: string; unit: string; kg_price: number }[];
 }>();
+
+const ingredientOptions = computed(() =>
+    props.ingredients.map(ing => ({
+        id: ing.id,
+        label: `${ing.name} (${ing.unit})`,
+    }))
+)
 
 const form = useForm({
     name: '',
@@ -17,6 +26,13 @@ const form = useForm({
 const addRow = () => {
     form.items.push({ ingredient_id: null, quantity: '0' });
 };
+
+const bulkCount = ref(5)
+const addBulk = () => {
+    for (let i = 0; i < bulkCount.value; i++) {
+        form.items.push({ ingredient_id: null, quantity: '0' })
+    }
+}
 
 const removeRow = (i: number) => {
     form.items.splice(i, 1);
@@ -75,6 +91,22 @@ const submit = () => {
                 <InputError :message="form.errors.quantity" />
             </div>
 
+            <!-- Bulk add -->
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">Add</span>
+                <input
+                    v-model.number="bulkCount"
+                    type="number"
+                    min="1"
+                    max="50"
+                    class="w-16 rounded border p-1 text-center text-sm"
+                />
+                <span class="text-sm text-gray-500">empty rows</span>
+                <button class="rounded bg-gray-200 px-3 py-1 text-sm" @click="addBulk">
+                    Add
+                </button>
+            </div>
+
             <!-- Items -->
             <div class="space-y-2">
                 <div
@@ -83,19 +115,18 @@ const submit = () => {
                     class="flex flex-col gap-1 rounded py-2"
                 >
                     <div class="flex gap-2">
-                        <select
-                            v-model="item.ingredient_id"
-                            class="flex-1 rounded border p-2"
-                        >
-                            <option :value="null" disabled>Select ingredient</option>
-                            <option
-                                v-for="ing in props.ingredients"
-                                :key="ing.id"
-                                :value="ing.id"
-                            >
-                                {{ ing.name }} ({{ ing.unit }})
-                            </option>
-                        </select>
+                        <div class="flex-1">
+                            <Select
+                                v-model="item.ingredient_id"
+                                :options="ingredientOptions"
+                                optionLabel="label"
+                                optionValue="id"
+                                filter
+                                filterPlaceholder="Search..."
+                                placeholder="Select ingredient"
+                                class="w-full"
+                            />
+                        </div>
 
                         <input
                             v-model="item.quantity"
