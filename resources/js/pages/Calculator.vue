@@ -62,6 +62,8 @@ const costs = ref({
 
 const commissionPct = ref(5)
 
+const nf = (v: number, d = 2) => v.toFixed(d).replace('.', ',')
+
 function cloneProduct(p?: Product | null): Product | null {
     if (!p) return null
     return { ...p, components: (p.components ?? []).map(c => ({ ...c })) }
@@ -312,7 +314,7 @@ const saveOrder = () => {
 
                         <div class="text-center mt-4">
               <span class="rounded-full bg-gray-100 px-4 py-1 text-sm">
-                Free grams: {{ freeGrams }} g · Price/kg: {{ pricePerKg.toFixed(2) }} €
+                Free grams: {{ freeGrams }} g · Price/kg: {{ nf(pricePerKg) }} €
               </span>
                         </div>
                     </div>
@@ -383,18 +385,18 @@ const saveOrder = () => {
                             </label>
                         </div>
                         <div class="text-xs text-gray-500 text-center">
-                            1 kg → {{ portionGrams > 0 ? (1000 / portionGrams).toFixed(1) : '—' }} portions ·
-                            box = {{ portionGrams > 0 ? (portionGrams * unitsPerBox / 1000).toFixed(3) : '—' }} kg
+                            1 kg → {{ portionGrams > 0 ? nf(1000 / portionGrams, 1) : '—' }} portions ·
+                            box = {{ portionGrams > 0 ? nf(portionGrams * unitsPerBox / 1000, 3) : '—' }} kg
                         </div>
                     </div>
 
                     <!-- Final -->
                     <div class="rounded-xl bg-white p-4 shadow text-center space-y-3">
                         <div class="text-gray-500 text-sm">Final price per kg</div>
-                        <div class="text-3xl font-bold text-blue-600">{{ finalPrice }} €</div>
+                        <div class="text-3xl font-bold text-blue-600">{{ nf(finalPrice) }} €</div>
                         <div v-if="portionGrams > 0" class="text-sm text-gray-500">
-                            Per portion ({{ portionGrams }}g): {{ (finalPrice * portionGrams / 1000).toFixed(4) }} € ·
-                            Per box (×{{ unitsPerBox }}): {{ (finalPrice * portionGrams / 1000 * unitsPerBox).toFixed(4) }} €
+                            Per portion ({{ portionGrams }}g): {{ nf(finalPrice * portionGrams / 1000, 4) }} € ·
+                            Per box (×{{ unitsPerBox }}): {{ nf(finalPrice * portionGrams / 1000 * unitsPerBox, 4) }} €
                         </div>
 
                         <button class="rounded bg-green-600 px-4 py-2 text-white" @click="addToOrder">
@@ -415,7 +417,7 @@ const saveOrder = () => {
 
                     <div v-for="(item, i) in orderItems" :key="i" class="border rounded p-2">
                         <div class="font-semibold">{{ item.product_name }}</div>
-                        <div class="text-xs text-gray-500">{{ item.final_price }} €/kg</div>
+                        <div class="text-xs text-gray-500">{{ nf(item.final_price) }} €/kg</div>
                         <div class="text-xs text-gray-500 mt-0.5">
                             {{ item.portion_grams }}g × {{ item.units_per_box }} pcs/box
                         </div>

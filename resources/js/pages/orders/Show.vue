@@ -2,6 +2,8 @@
 import { Head } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 
+const nf = (v: number, d = 2) => Number(v).toFixed(d).replace('.', ',')
+
 const props = defineProps<{
     order: {
         id: number
@@ -46,7 +48,7 @@ const props = defineProps<{
                 <div><b>Client:</b> {{ order.client?.name }}</div>
                 <div><b>Location:</b> {{ order.location?.name }}</div>
                 <div><b>Status:</b> {{ order.approved ? 'Approved' : 'Draft' }}</div>
-                <div><b>Total:</b> {{ order.price }} €</div>
+                <div><b>Total:</b> {{ nf(order.price) }} €</div>
                 <div><b>Date:</b> {{ order.date }}</div>
             </div>
 
@@ -56,14 +58,14 @@ const props = defineProps<{
                 class="border rounded p-4"
             >
                 <div class="font-semibold text-lg mb-2">
-                    {{ p.name_en }} — {{ p.pivot.price }} €
+                    {{ p.name_en }} — {{ nf(p.pivot.price) }} €
                 </div>
 
                 <div class="text-sm text-gray-600 mb-2">
-                    Packaging: {{ p.pivot.packaging_price }} |
-                    Production: {{ p.pivot.production_price }} |
-                    Transport: {{ p.pivot.transportation_price }} |
-                    Margin: {{ p.pivot.sell_percent }}%
+                    Packaging: {{ nf(p.pivot.packaging_price) }} |
+                    Production: {{ nf(p.pivot.production_price) }} |
+                    Transport: {{ nf(p.pivot.transportation_price) }} |
+                    Margin: {{ nf(p.pivot.sell_percent) }}%
                 </div>
 
                 <table class="w-full text-sm border">
@@ -78,7 +80,7 @@ const props = defineProps<{
                     <tr v-for="c in p.components" :key="c.id">
                         <td class="border p-2">{{ c.name }}</td>
                         <td class="border p-2 text-center">{{ c.grams }} g</td>
-                        <td class="border p-2 text-center">{{ c.price_per_kg }}</td>
+                        <td class="border p-2 text-center">{{ nf(c.price_per_kg) }}</td>
                     </tr>
                     </tbody>
                 </table>

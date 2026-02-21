@@ -25,15 +25,15 @@
 </p>
 
 @foreach($items as $item)
-    <h3>{{ $item['product_name'] }} — {{ number_format($item['price'], 2) }} €</h3>
+    <h3>{{ $item['product_name'] }} — {{ number_format($item['price'], 2, ',', '') }} €</h3>
 
     <p class="muted" style="margin:0 0 6px;">
-        Packaging material: {{ number_format($item['packaging_material_price'], 2) }} €
-        · Production: {{ number_format($item['production_price'], 2) }} €
-        · Packaging: {{ number_format($item['packaging_price'], 2) }} €
-        · Transport: {{ number_format($item['transportation_price'], 2) }} €
-        · Multi delivery: {{ number_format($item['multi_delivery_price'], 2) }} €
-        · Margin: {{ number_format($item['sell_percent'], 2) }} %
+        Packaging material: {{ number_format($item['packaging_material_price'], 2, ',', '') }} €
+        · Production: {{ number_format($item['production_price'], 2, ',', '') }} €
+        · Packaging: {{ number_format($item['packaging_price'], 2, ',', '') }} €
+        · Transport: {{ number_format($item['transportation_price'], 2, ',', '') }} €
+        · Multi delivery: {{ number_format($item['multi_delivery_price'], 2, ',', '') }} €
+        · Margin: {{ number_format($item['sell_percent'], 2, ',', '') }} %
     </p>
 
     <table>
@@ -49,7 +49,7 @@
             <tr>
                 <td>{{ $c['name'] }}</td>
                 <td class="center">{{ number_format($c['grams'], 0) }} g</td>
-                <td class="right">{{ number_format($c['price_per_kg'], 2) }}</td>
+                <td class="right">{{ number_format($c['price_per_kg'], 2, ',', '') }}</td>
             </tr>
         @empty
             <tr>

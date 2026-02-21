@@ -54,8 +54,8 @@ const rows = computed(() =>
     })
 )
 
-const fmt = (v: number) => v.toFixed(4)
-const fmt2 = (v: number) => v.toFixed(2)
+const fmt = (v: number) => v.toFixed(4).replace('.', ',')
+const fmt2 = (v: number) => v.toFixed(2).replace('.', ',')
 </script>
 
 <template>

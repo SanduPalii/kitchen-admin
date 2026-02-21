@@ -76,6 +76,8 @@ const costs = ref({
 
 const commissionPct = ref<number>(props.order.commission_pct ?? 5)
 
+const nf = (v: number, d = 2) => v.toFixed(d).replace('.', ',')
+
 // Предзаполняем все позиции заказа из props
 const orderItems = ref<OrderItem[]>(
     props.order.items.map(item => {
@@ -253,7 +255,7 @@ const saveOrder = () => {
 
                         <div class="text-center mt-4">
                             <span class="rounded-full bg-gray-100 px-4 py-1 text-sm">
-                                Free grams: {{ freeGrams }} g · Price/kg: {{ pricePerKg.toFixed(2) }} €
+                                Free grams: {{ freeGrams }} g · Price/kg: {{ nf(pricePerKg) }} €
                             </span>
                         </div>
                     </div>
@@ -310,20 +312,20 @@ const saveOrder = () => {
                             </label>
                         </div>
                         <div class="text-xs text-gray-500 text-center">
-                            1 kg → {{ editingItem.portion_grams > 0 ? (1000 / editingItem.portion_grams).toFixed(1) : '—' }} portions ·
-                            box = {{ editingItem.portion_grams > 0 ? (editingItem.portion_grams * editingItem.units_per_box / 1000).toFixed(3) : '—' }} kg
+                            1 kg → {{ editingItem.portion_grams > 0 ? nf(1000 / editingItem.portion_grams, 1) : '—' }} portions ·
+                            box = {{ editingItem.portion_grams > 0 ? nf(editingItem.portion_grams * editingItem.units_per_box / 1000, 3) : '—' }} kg
                         </div>
                     </div>
 
                     <!-- Final -->
                     <div class="rounded-xl bg-white p-4 shadow text-center space-y-2">
                         <div class="text-gray-500 text-sm">Final price per kg</div>
-                        <div class="text-3xl font-bold text-blue-600">{{ finalPrice }} €</div>
+                        <div class="text-3xl font-bold text-blue-600">{{ nf(finalPrice) }} €</div>
                         <div v-if="editingItem.portion_grams > 0" class="text-sm text-gray-500">
                             Per portion ({{ editingItem.portion_grams }}g):
-                            {{ (finalPrice * editingItem.portion_grams / 1000).toFixed(4) }} € ·
+                            {{ nf(finalPrice * editingItem.portion_grams / 1000, 4) }} € ·
                             Per box (×{{ editingItem.units_per_box }}):
-                            {{ (finalPrice * editingItem.portion_grams / 1000 * editingItem.units_per_box).toFixed(4) }} €
+                            {{ nf(finalPrice * editingItem.portion_grams / 1000 * editingItem.units_per_box, 4) }} €
                         </div>
                     </div>
                 </template>
@@ -342,7 +344,7 @@ const saveOrder = () => {
                         @click="editingIndex = i"
                     >
                         <div class="font-semibold text-sm">{{ item.product_name }}</div>
-                        <div class="text-xs text-gray-500">{{ computeItemPrice(item) }} €/kg</div>
+                        <div class="text-xs text-gray-500">{{ nf(computeItemPrice(item)) }} €/kg</div>
                         <div class="text-xs text-gray-500">
                             {{ item.portion_grams }}g × {{ item.units_per_box }} pcs/box
                         </div>

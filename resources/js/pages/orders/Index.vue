@@ -7,6 +7,8 @@ import { PencilIcon, Trash2Icon, EyeIcon, DownloadIcon, TableIcon, CopyIcon } fr
 
 const confirm = useConfirm()
 
+const nf = (v: number, d = 2) => Number(v).toFixed(d).replace('.', ',')
+
 const props = defineProps<{
     orders: {
         id: number
@@ -76,7 +78,7 @@ const deleteOrder = (id: number) => {
                         <td class="border p-2">{{ o.client?.name ?? '—' }}</td>
                         <td class="border p-2">{{ o.location?.name ?? '—' }}</td>
                         <td class="border p-2 text-center">{{ o.size }}</td>
-                        <td class="border p-2 text-center font-semibold">{{ o.price }} €</td>
+                        <td class="border p-2 text-center font-semibold">{{ nf(o.price) }} €</td>
                         <td class="border p-2 text-center">
                             <span
                                 class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"

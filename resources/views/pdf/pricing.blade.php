@@ -204,12 +204,12 @@
 
                 {{-- Price per piece --}}
                 <td class="price-col">
-                    € {{ number_format($item['price_per_piece'], 2, '.', ' ') }}
+                    € {{ number_format($item['price_per_piece'], 2, ',', '') }}
                 </td>
 
                 {{-- Price per box (with "× N pcs" hint) --}}
                 <td class="price-col">
-                    € {{ number_format($item['price_per_box'], 2, '.', ' ') }}
+                    € {{ number_format($item['price_per_box'], 2, ',', '') }}
                     <div class="box-label">× {{ $item['units_per_box'] }} pcs</div>
                 </td>
 
