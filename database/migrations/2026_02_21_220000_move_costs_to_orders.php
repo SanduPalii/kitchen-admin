@@ -19,35 +19,35 @@ return new class extends Migration
             $table->decimal('sell_percent', 5, 2)->default(30)->after('multi_delivery');
         });
 
-        // Migrate existing data: copy costs from the first order_product of each order
-        DB::statement("
-            UPDATE orders o
-            JOIN order_products op ON op.order_id = o.id
-            JOIN (
-                SELECT MIN(id) AS min_id, order_id
-                FROM order_products
-                GROUP BY order_id
-            ) AS first_op ON op.id = first_op.min_id
-            SET
-                o.packaging_material = op.packaging_material_price,
-                o.production         = op.production_price,
-                o.packaging          = op.packaging_price,
-                o.transportation     = op.transportation_price,
-                o.multi_delivery     = op.multi_delivery_price,
-                o.sell_percent       = op.sell_percent
-        ");
+        // Migrate existing data only if old cost columns still exist
+        if (Schema::hasColumn('order_products', 'packaging_material_price')) {
+            DB::statement("
+                UPDATE orders
+                SET
+                    packaging_material = op.packaging_material_price,
+                    production         = op.production_price,
+                    packaging          = op.packaging_price,
+                    transportation     = op.transportation_price,
+                    multi_delivery     = op.multi_delivery_price,
+                    sell_percent       = op.sell_percent
+                FROM order_products op
+                WHERE orders.id = op.order_id
+                  AND op.id = (
+                      SELECT MIN(id) FROM order_products WHERE order_id = orders.id
+                  )
+            ");
 
-        // Remove cost columns from order_products
-        Schema::table('order_products', function (Blueprint $table) {
-            $table->dropColumn([
-                'packaging_material_price',
-                'production_price',
-                'packaging_price',
-                'transportation_price',
-                'multi_delivery_price',
-                'sell_percent',
-            ]);
-        });
+            Schema::table('order_products', function (Blueprint $table) {
+                $table->dropColumn([
+                    'packaging_material_price',
+                    'production_price',
+                    'packaging_price',
+                    'transportation_price',
+                    'multi_delivery_price',
+                    'sell_percent',
+                ]);
+            });
+        }
     }
 
     public function down(): void
