@@ -8,6 +8,8 @@ class OrderProduct extends Pivot
 {
     protected $table = 'order_products';
 
+    public $incrementing = true;
+
     protected $fillable = [
         'order_id',
         'product_id',
