@@ -25,7 +25,7 @@ class CalculatorController extends Controller
 
                     // Себестоимость компонента (на 1 кг)
                     $batchCost = $component->ingredients->reduce(function ($sum, $ingredient) {
-                        return $sum + ((float)$ingredient->kg_price * (float)$ingredient->pivot->quantity);
+                        return $sum + round((float)$ingredient->kg_price * (float)$ingredient->pivot->quantity, 2);
                     }, 0);
 
                     $costPerKg = $component->quantity > 0

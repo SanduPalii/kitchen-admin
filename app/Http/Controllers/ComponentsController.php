@@ -15,7 +15,7 @@ class ComponentsController extends Controller
         $components = Component::with('ingredients')->get()->map(function ($component) {
 
             $cost = $component->ingredients->sum(function ($ing) {
-                return (float) $ing->kg_price * (float) $ing->pivot->quantity;
+                return round((float) $ing->kg_price * (float) $ing->pivot->quantity, 2);
             });
 
             $costPerKg = $component->quantity > 0

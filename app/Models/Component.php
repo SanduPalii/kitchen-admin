@@ -36,7 +36,8 @@ class Component extends Model
         $this->loadMissing('ingredients');
 
         return $this->ingredients->sum(function ($ingredient) {
-            return (float) $ingredient->pivot->quantity * (float) ($ingredient->kg_price ?? 0);
+            // Round each row to 2dp before summing — matches Excel's per-row ROUND()
+            return round((float) $ingredient->pivot->quantity * (float) ($ingredient->kg_price ?? 0), 2);
         });
     }
 }
