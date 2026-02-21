@@ -47,8 +47,11 @@ class ProductsController extends Controller
         $product = Product::create($request->only(['name_fi', 'name_ee', 'name_en', 'type']));
 
         $product->components()->sync(
-            collect($data['items'])->mapWithKeys(fn ($item) => [
-                $item['component_id'] => ['quantity' => $item['quantity']],
+            collect($data['items'])->values()->mapWithKeys(fn ($item, $index) => [
+                $item['component_id'] => [
+                    'quantity'   => $item['quantity'],
+                    'sort_order' => $index,
+                ],
             ])->toArray()
         );
 
@@ -78,8 +81,11 @@ class ProductsController extends Controller
         $product->update($request->only(['name_fi', 'name_ee', 'name_en', 'type']));
 
         $product->components()->sync(
-            collect($data['items'])->mapWithKeys(fn ($item) => [
-                $item['component_id'] => ['quantity' => $item['quantity']],
+            collect($data['items'])->values()->mapWithKeys(fn ($item, $index) => [
+                $item['component_id'] => [
+                    'quantity'   => $item['quantity'],
+                    'sort_order' => $index,
+                ],
             ])->toArray()
         );
 

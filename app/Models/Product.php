@@ -23,7 +23,8 @@ class Product extends Model
             'product_components'
         )
             ->using(ProductComponent::class)
-            ->withPivot('quantity')
+            ->withPivot('quantity', 'sort_order')
+            ->orderByPivot('sort_order')
             ->withTimestamps();
     }
 }
