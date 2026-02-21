@@ -10,7 +10,11 @@ class LocationsController extends Controller
 {
     public function index()
     {
-        $locations = Location::all();
+        $locations = Location::all()->map(fn ($l) => [
+            'id'    => $l->id,
+            'name'  => $l->name,
+            'price' => number_format((float) $l->price, 2, ',', ''),
+        ]);
 
         $columns = [
             ['field' => 'name', 'header' => 'Name'],

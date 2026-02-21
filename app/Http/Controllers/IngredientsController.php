@@ -12,7 +12,14 @@ class IngredientsController extends Controller
         $ingredients = Ingredient::when(
             $request->unit,
             fn ($q) => $q->where('unit', $request->unit)
-        )->get();
+        )->get()->map(fn ($i) => [
+            'id'       => $i->id,
+            'name'     => $i->name,
+            'price'    => number_format((float) $i->price, 2, ',', ''),
+            'size'     => $i->size,
+            'unit'     => $i->unit,
+            'kg_price' => number_format((float) $i->kg_price, 4, ',', ''),
+        ]);
 
         $columns = [
           ['field'=> 'name', 'header' => 'Name'],

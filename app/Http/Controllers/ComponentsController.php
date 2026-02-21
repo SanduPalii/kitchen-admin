@@ -23,12 +23,12 @@ class ComponentsController extends Controller
                 : 0;
 
             return [
-                'id' => $component->id,
-                'name' => $component->name,
-                'type' => $component->type,
-                'quantity' => $component->quantity,
-                'cost' => round($cost, 2),
-                'cost_per_kg' => round($costPerKg, 2),
+                'id'          => $component->id,
+                'name'        => $component->name,
+                'type'        => $component->type,
+                'quantity'    => $component->quantity,
+                'cost'        => number_format($cost, 2, ',', ''),
+                'cost_per_kg' => number_format($costPerKg, 2, ',', ''),
             ];
         });
 

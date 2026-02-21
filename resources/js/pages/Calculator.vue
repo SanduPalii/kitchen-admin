@@ -275,7 +275,7 @@ const saveOrder = () => {
                         <select v-model="selectedLocationId" class="w-full rounded border p-2">
                             <option :value="null" disabled>Select location</option>
                             <option v-for="l in locations" :key="l.id" :value="l.id">
-                                {{ l.name }} ({{ l.price }} €)
+                                {{ l.name }} ({{ nf(l.price) }} €)
                             </option>
                         </select>
                     </div>
