@@ -13,8 +13,10 @@ class Order extends Model{
         'location_id',
         'user_id',
         'price',
+        'size',
         'approved',
         'date',
+        'commission_pct',
     ];
 
     public function products()

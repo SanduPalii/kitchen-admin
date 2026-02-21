@@ -34,6 +34,7 @@ const props = defineProps<{
         id: number
         client_id: number
         location_id: number
+        commission_pct: number
         items: {
             product_id: number
             final_price: number
@@ -72,6 +73,8 @@ const costs = ref({
     multi_delivery: props.order.items[0]?.multi_delivery ?? 0.12,
     sell_percent: props.order.items[0]?.sell_percent ?? 30,
 })
+
+const commissionPct = ref<number>(props.order.commission_pct ?? 5)
 
 // Предзаполняем все позиции заказа из props
 const orderItems = ref<OrderItem[]>(
@@ -158,6 +161,7 @@ const saveOrder = () => {
         client_id: selectedClientId.value,
         location_id: selectedLocationId.value,
         size: orderItems.value.length,
+        commission_pct: commissionPct.value,
         items: orderItems.value.map(item => ({
             product_id: item.product_id,
             final_price: computeItemPrice(item),
@@ -281,6 +285,11 @@ const saveOrder = () => {
                             <label>
                                 Sell percent (%)
                                 <input type="number" step="1" v-model.number="costs.sell_percent" class="w-full rounded border p-2" />
+                            </label>
+                            <label class="col-span-2">
+                                Commission (%)
+                                <input type="number" step="0.5" min="0" max="100" v-model.number="commissionPct"
+                                       class="w-full rounded border p-2 border-purple-300 focus:border-purple-500" />
                             </label>
                         </div>
                     </div>

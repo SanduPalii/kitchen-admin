@@ -56,6 +56,7 @@ class CalculatorController extends Controller
             'client_id' => 'required|exists:clients,id',
             'location_id' => 'required|exists:locations,id',
             'size' => 'required|integer|min:1',
+            'commission_pct' => 'required|numeric|min:0|max:100',
 
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -87,6 +88,7 @@ class CalculatorController extends Controller
                 'price' => 0,
                 'approved' => false,
                 'date' => now(),
+                'commission_pct' => $data['commission_pct'],
             ]);
 
             $total = 0;
@@ -130,6 +132,63 @@ class CalculatorController extends Controller
     }
 
 
+    public function duplicate(Order $order)
+    {
+        return DB::transaction(function () use ($order) {
+            $order->load(['products']);
+
+            $orderProducts = OrderProduct::with(['components'])
+                ->where('order_id', $order->id)
+                ->get()
+                ->keyBy('product_id');
+
+            $newOrder = Order::create([
+                'client_id'      => $order->client_id,
+                'location_id'    => $order->location_id,
+                'size'           => $order->size,
+                'user_id'        => auth()->id(),
+                'price'          => $order->price,
+                'approved'       => false,
+                'date'           => now(),
+                'commission_pct' => $order->commission_pct,
+            ]);
+
+            foreach ($order->products as $product) {
+                $pivot = $product->pivot;
+                $newOrder->products()->attach($product->id, [
+                    'price'                    => $pivot->price,
+                    'packaging_material_price' => $pivot->packaging_material_price,
+                    'production_price'         => $pivot->production_price,
+                    'packaging_price'          => $pivot->packaging_price,
+                    'transportation_price'     => $pivot->transportation_price,
+                    'multi_delivery_price'     => $pivot->multi_delivery_price,
+                    'sell_percent'             => $pivot->sell_percent,
+                    'portion_grams'            => $pivot->portion_grams,
+                    'units_per_box'            => $pivot->units_per_box,
+                ]);
+
+                $newOrderProduct = DB::table('order_products')
+                    ->where('order_id', $newOrder->id)
+                    ->where('product_id', $product->id)
+                    ->first();
+
+                $oldOrderProduct = $orderProducts[$product->id] ?? null;
+                if ($oldOrderProduct && $newOrderProduct) {
+                    foreach ($oldOrderProduct->components as $c) {
+                        \App\Models\OrderProductComponent::create([
+                            'order_product_id' => $newOrderProduct->id,
+                            'component_id'     => $c->component_id,
+                            'grams'            => $c->grams,
+                            'price_per_kg'     => $c->price_per_kg,
+                        ]);
+                    }
+                }
+            }
+
+            return redirect()->route('orders')->with('success', "Order #{$order->id} duplicated as #{$newOrder->id}");
+        });
+    }
+
     private function calculateProductCost(Product $product): float
     {
         $sum = 0;
@@ -160,6 +219,7 @@ class CalculatorController extends Controller
                 'client_id' => $order->client_id,
                 'location_id' => $order->location_id,
                 'size' => $order->size,
+                'commission_pct' => (float) $order->commission_pct,
                 'items' => $order->products->map(function ($product) use ($orderProducts) {
                     $orderProduct = $orderProducts[$product->id];
 
@@ -196,6 +256,7 @@ class CalculatorController extends Controller
             'client_id' => 'required|exists:clients,id',
             'location_id' => 'required|exists:locations,id',
             'size' => 'required|integer|min:1',
+            'commission_pct' => 'required|numeric|min:0|max:100',
 
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -222,6 +283,7 @@ class CalculatorController extends Controller
                 'client_id' => $data['client_id'],
                 'location_id' => $data['location_id'],
                 'size' => $data['size'],
+                'commission_pct' => $data['commission_pct'],
             ]);
 
             // Удаляем старые связи

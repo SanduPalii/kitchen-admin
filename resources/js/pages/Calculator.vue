@@ -60,6 +60,8 @@ const costs = ref({
     sell_percent: 30,
 })
 
+const commissionPct = ref(5)
+
 function cloneProduct(p?: Product | null): Product | null {
     if (!p) return null
     return { ...p, components: (p.components ?? []).map(c => ({ ...c })) }
@@ -195,6 +197,7 @@ const saveOrder = () => {
         client_id: selectedClientId.value,
         location_id: selectedLocationId.value,
         size: orderItems.value.length,
+        commission_pct: commissionPct.value,
         items: orderItems.value.map(i => ({
             product_id: i.product_id,
             final_price: i.final_price,
@@ -353,6 +356,12 @@ const saveOrder = () => {
                                 Sell percent (%)
                                 <input type="number" step="1" v-model.number="costs.sell_percent"
                                        class="w-full rounded border p-2" />
+                            </label>
+
+                            <label class="col-span-2">
+                                Commission (%)
+                                <input type="number" step="0.5" min="0" max="100" v-model.number="commissionPct"
+                                       class="w-full rounded border p-2 border-purple-300 focus:border-purple-500" />
                             </label>
                         </div>
                     </div>

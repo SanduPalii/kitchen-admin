@@ -3,7 +3,7 @@ import { Head, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
-import { PencilIcon, Trash2Icon, EyeIcon, DownloadIcon } from 'lucide-vue-next'
+import { PencilIcon, Trash2Icon, EyeIcon, DownloadIcon, TableIcon, CopyIcon } from 'lucide-vue-next'
 
 const confirm = useConfirm()
 
@@ -21,6 +21,10 @@ const props = defineProps<{
 
 const editOrder = (id: number) => {
     router.visit(`/calculator/${id}/edit`)
+}
+
+const duplicateOrder = (id: number) => {
+    router.post(`/orders/${id}/duplicate`, {}, { preserveScroll: true })
 }
 
 const deleteOrder = (id: number) => {
@@ -58,7 +62,7 @@ const deleteOrder = (id: number) => {
                         <th class="border p-2 text-center">Size</th>
                         <th class="border p-2 text-center">Price</th>
                         <th class="border p-2 text-center">Status</th>
-                        <th class="border p-2 text-center w-[120px]">Actions</th>
+                        <th class="border p-2 text-center w-[180px]">Actions</th>
                     </tr>
                     </thead>
 
@@ -103,13 +107,26 @@ const deleteOrder = (id: number) => {
                                     <Trash2Icon class="w-5 h-5" />
                                 </button>
 
-                                <a :href="`/orders/${o.id}/pdf/preview`" target="_blank" class="text-blue-600 hover:text-blue-800 transition">
+                                <a :href="`/orders/${o.id}/pricing-pdf/preview`" target="_blank" class="text-blue-600 hover:text-blue-800 transition" title="Preview PDF">
                                     <EyeIcon/>
                                 </a>
 
-                                <a :href="`/orders/${o.id}/pdf`" class="text-green-600 hover:text-green-800 transition">
+                                <a :href="`/orders/${o.id}/pricing-pdf`" class="text-green-600 hover:text-green-800 transition" title="Download PDF">
                                     <DownloadIcon/>
                                 </a>
+
+                                <a :href="`/orders/${o.id}/pricing-internal`" class="text-purple-600 hover:text-purple-800 transition" title="Internal pricing preview">
+                                    <TableIcon class="w-5 h-5"/>
+                                </a>
+
+                                <!-- DUPLICATE -->
+                                <button
+                                    class="text-gray-500 hover:text-gray-800 transition"
+                                    title="Duplicate order"
+                                    @click="duplicateOrder(o.id)"
+                                >
+                                    <CopyIcon class="w-5 h-5"/>
+                                </button>
                             </div>
                         </td>
                     </tr>

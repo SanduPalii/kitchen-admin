@@ -34,6 +34,15 @@ Route::prefix('orders')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/{order}/pdf', [\App\Http\Controllers\OrdersController::class, 'pdf'])->name('orders.pdf');
     Route::get('/{order}/pdf/preview', [\App\Http\Controllers\OrdersController::class, 'pdfPreview'])->name('orders.pdf.preview');
 
+    Route::get('/{order}/pricing-pdf', [\App\Http\Controllers\OrdersController::class, 'pricingPdf'])->name('orders.pricing-pdf');
+    Route::get('/{order}/pricing-pdf/preview', [\App\Http\Controllers\OrdersController::class, 'pricingPdfPreview'])->name('orders.pricing-pdf.preview');
+
+    Route::get('/{order}/pricing-internal', [\App\Http\Controllers\OrdersController::class, 'pricingInternal'])->name('orders.pricing-internal');
+
+    Route::post('/{order}/duplicate', [\App\Http\Controllers\CalculatorController::class, 'duplicate'])->name('orders.duplicate');
+
+    Route::patch('/{order}/commission', [\App\Http\Controllers\OrdersController::class, 'updateCommission'])->name('orders.commission');
+
 
 });
 
