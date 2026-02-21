@@ -20,7 +20,8 @@ class Component extends Model
         )
             ->using(ComponentItem::class)
             ->withPivot('quantity')
-            ->withTimestamps();
+            ->withTimestamps()
+            ->orderByPivot('id');
     }
 
     public function products()
