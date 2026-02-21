@@ -38,16 +38,27 @@ const removeRow = (i: number) => {
     form.items.splice(i, 1);
 };
 
-const submit = () => {
-    const payload = {
-        ...form.data(),
-        items: form.items.map(i => ({
-            ...i,
-            quantity: Number(i.quantity),
-        })),
-    };
+const itemsError = ref('')
 
-    form.post('/components', { data: payload });
+const submit = () => {
+    const filtered = form.items.filter(i => i.ingredient_id !== null)
+
+    if (filtered.length === 0) {
+        itemsError.value = 'At least one ingredient must be selected.'
+        return
+    }
+
+    itemsError.value = ''
+
+    form
+        .transform(data => ({
+            ...data,
+            items: filtered.map(i => ({
+                ...i,
+                quantity: Number(i.quantity),
+            })),
+        }))
+        .post('/components')
 };
 </script>
 
@@ -154,6 +165,8 @@ const submit = () => {
             <button class="rounded bg-gray-200 px-3 py-1" @click="addRow">
                 + Add ingredient
             </button>
+
+            <p v-if="itemsError" class="text-sm text-red-600">{{ itemsError }}</p>
 
             <button
                 class="rounded bg-blue-600 px-4 py-2 text-white"

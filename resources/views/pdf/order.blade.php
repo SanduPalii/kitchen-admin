@@ -28,12 +28,12 @@
     <h3>{{ $item['product_name'] }} — {{ number_format($item['price'], 2, ',', '') }} €</h3>
 
     <p class="muted" style="margin:0 0 6px;">
-        Packaging material: {{ number_format($item['packaging_material_price'], 2, ',', '') }} €
-        · Production: {{ number_format($item['production_price'], 2, ',', '') }} €
-        · Packaging: {{ number_format($item['packaging_price'], 2, ',', '') }} €
-        · Transport: {{ number_format($item['transportation_price'], 2, ',', '') }} €
-        · Multi delivery: {{ number_format($item['multi_delivery_price'], 2, ',', '') }} €
-        · Margin: {{ number_format($item['sell_percent'], 2, ',', '') }} %
+        Packaging material: {{ number_format($order->packaging_material, 2, ',', '') }} €
+        · Production: {{ number_format($order->production, 2, ',', '') }} €
+        · Packaging: {{ number_format($order->packaging, 2, ',', '') }} €
+        · Transport: {{ number_format($order->transportation, 2, ',', '') }} €
+        · Multi delivery: {{ number_format($order->multi_delivery, 2, ',', '') }} €
+        · Margin: {{ number_format($order->sell_percent, 2, ',', '') }} %
     </p>
 
     <table>

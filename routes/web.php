@@ -10,9 +10,9 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::prefix('calculator')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [\App\Http\Controllers\CalculatorController::class, 'index'])->name('calculator');
@@ -41,7 +41,9 @@ Route::prefix('orders')->middleware(['auth', 'verified'])->group(function () {
 
     Route::post('/{order}/duplicate', [\App\Http\Controllers\CalculatorController::class, 'duplicate'])->name('orders.duplicate');
 
+    Route::patch('/{order}/approve', [\App\Http\Controllers\OrdersController::class, 'approve'])->name('orders.approve');
     Route::patch('/{order}/commission', [\App\Http\Controllers\OrdersController::class, 'updateCommission'])->name('orders.commission');
+    Route::patch('/{order}/settings', [\App\Http\Controllers\OrdersController::class, 'updateSettings'])->name('orders.settings');
 
 
 });

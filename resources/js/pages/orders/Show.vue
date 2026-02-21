@@ -11,6 +11,12 @@ const props = defineProps<{
         size: number
         approved: boolean
         date: string
+        packaging_material: number
+        production: number
+        packaging: number
+        transportation: number
+        multi_delivery: number
+        sell_percent: number
         client: { name: string } | null
         location: { name: string } | null
         products: {
@@ -18,12 +24,6 @@ const props = defineProps<{
             name_en: string
             pivot: {
                 price: number
-                packaging_material_price: number
-                production_price: number
-                packaging_price: number
-                transportation_price: number
-                multi_delivery_price: number
-                sell_percent: number
             }
             components: {
                 id: number
@@ -62,10 +62,10 @@ const props = defineProps<{
                 </div>
 
                 <div class="text-sm text-gray-600 mb-2">
-                    Packaging: {{ nf(p.pivot.packaging_price) }} |
-                    Production: {{ nf(p.pivot.production_price) }} |
-                    Transport: {{ nf(p.pivot.transportation_price) }} |
-                    Margin: {{ nf(p.pivot.sell_percent) }}%
+                    Packaging: {{ nf(order.packaging) }} |
+                    Production: {{ nf(order.production) }} |
+                    Transport: {{ nf(order.transportation) }} |
+                    Margin: {{ nf(order.sell_percent) }}%
                 </div>
 
                 <table class="w-full text-sm border">

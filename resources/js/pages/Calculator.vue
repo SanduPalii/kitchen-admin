@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
+import Select from 'primevue/select'
 import { computed, ref, watch } from 'vue'
 
 type Component = {
@@ -32,7 +33,7 @@ const confirm = useConfirm()
 const props = defineProps<{
     products: Product[]
     clients: { id: number; name: string }[]
-    locations: { id: number; name: string; price: number }[]
+    locations: { id: number; name: string }[]
 }>()
 
 const TOTAL_WEIGHT = 1000
@@ -61,8 +62,10 @@ const costs = ref({
 })
 
 const commissionPct = ref(5)
+const costsOpen = ref(true)
 
 const nf = (v: number | string, d = 2) => Number(v).toFixed(d).replace('.', ',')
+
 
 function cloneProduct(p?: Product | null): Product | null {
     if (!p) return null
@@ -98,6 +101,17 @@ const takeAllFree = (i: number) => {
     if (!selectedProduct.value) return
     if (freeGrams.value <= 0) return
     selectedProduct.value.components[i].grams = (Number(selectedProduct.value.components[i].grams) || 0) + freeGrams.value
+}
+
+const setGrams = (i: number, ev: Event) => {
+    if (!selectedProduct.value) return
+    const raw = parseInt((ev.target as HTMLInputElement).value, 10)
+    if (isNaN(raw)) return
+    const othersTotal = selectedProduct.value.components.reduce((s, c, idx) =>
+        idx !== i ? s + (Number(c.grams) || 0) : s, 0)
+    const clamped = Math.max(0, Math.min(raw, TOTAL_WEIGHT - othersTotal))
+    selectedProduct.value.components[i].grams = clamped
+    ;(ev.target as HTMLInputElement).value = String(clamped)
 }
 
 const pricePerKg = computed(() => {
@@ -153,9 +167,6 @@ const addToOrder = () => {
         portion_grams: portionGrams.value,
         units_per_box: unitsPerBox.value,
     })
-
-    portionGrams.value = 100
-    unitsPerBox.value = 4
 }
 
 const saveOrder = () => {
@@ -200,19 +211,19 @@ const saveOrder = () => {
         location_id: selectedLocationId.value,
         size: orderItems.value.length,
         commission_pct: commissionPct.value,
+
+        packaging_material: costs.value.packaging_material,
+        production: costs.value.production,
+        packaging: costs.value.packaging,
+        transportation: costs.value.transportation,
+        multi_delivery: costs.value.multi_delivery,
+        sell_percent: costs.value.sell_percent,
+
         items: orderItems.value.map(i => ({
             product_id: i.product_id,
             final_price: i.final_price,
             portion_grams: i.portion_grams,
             units_per_box: i.units_per_box,
-
-            packaging_material: costs.value.packaging_material,
-            production: costs.value.production,
-            packaging: costs.value.packaging,
-            transportation: costs.value.transportation,
-            multi_delivery: costs.value.multi_delivery,
-            sell_percent: costs.value.sell_percent,
-
             components: i.components.map(c => ({
                 component_id: c.id,
                 grams: c.grams,
@@ -245,196 +256,191 @@ const saveOrder = () => {
     <AppLayout>
         <ConfirmDialog />
 
-        <div class="grid grid-cols-12 gap-6 p-6">
-            <!-- LEFT -->
-            <div class="col-span-8 space-y-6">
-                <!-- Empty state -->
-                <div v-if="!products.length" class="rounded-xl bg-white p-4 shadow">
-                    <div class="font-semibold">No products</div>
-                    <div class="text-sm text-gray-500 mt-1">
-                        Create ingredients → components → products, then calculator will work.
+        <div class="p-4 space-y-3">
+
+            <!-- TOP BAR: Client · Location · Commission -->
+            <div class="rounded-xl bg-white p-3 shadow">
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <div class="text-xs font-medium text-gray-500 mb-1">Client</div>
+                        <Select v-model="selectedClientId" :options="clients" optionLabel="name" optionValue="id"
+                                filter filterPlaceholder="Search..." placeholder="Select client" class="w-full" />
                     </div>
-                    <button class="mt-3 rounded bg-blue-600 px-4 py-2 text-white" @click="router.visit('/products/create')">
-                        + Create product
-                    </button>
+                    <div>
+                        <div class="text-xs font-medium text-gray-500 mb-1">Location</div>
+                        <Select v-model="selectedLocationId" :options="locations" optionLabel="name" optionValue="id"
+                                filter filterPlaceholder="Search..." placeholder="Select location" class="w-full" />
+                    </div>
+                    <div>
+                        <div class="text-xs font-medium text-gray-500 mb-1">Commission (%)</div>
+                        <input type="number" step="0.5" min="0" max="100" v-model.number="commissionPct"
+                               class="w-full rounded border px-2 py-2 text-sm border-purple-300 focus:border-purple-500 focus:outline-none" />
+                    </div>
                 </div>
+            </div>
 
-                <template v-else>
-                    <!-- Client -->
-                    <div class="rounded-xl bg-white p-4 shadow">
-                        <div class="font-semibold mb-2">Select client</div>
-                        <select v-model="selectedClientId" class="w-full rounded border p-2">
-                            <option :value="null" disabled>Select client</option>
-                            <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.name }}</option>
-                        </select>
-                    </div>
+            <!-- Empty state -->
+            <div v-if="!products.length" class="rounded-xl bg-white p-4 shadow">
+                <div class="font-semibold">No products</div>
+                <div class="text-sm text-gray-500 mt-1">
+                    Create ingredients → components → products, then calculator will work.
+                </div>
+                <button class="mt-3 rounded bg-blue-600 px-4 py-2 text-white" @click="router.visit('/products/create')">
+                    + Create product
+                </button>
+            </div>
 
-                    <!-- Location -->
-                    <div class="rounded-xl bg-white p-4 shadow">
-                        <div class="font-semibold mb-2">Select location</div>
-                        <select v-model="selectedLocationId" class="w-full rounded border p-2">
-                            <option :value="null" disabled>Select location</option>
-                            <option v-for="l in locations" :key="l.id" :value="l.id">
-                                {{ l.name }} ({{ nf(l.price) }} €)
-                            </option>
-                        </select>
-                    </div>
+            <!-- MAIN GRID -->
+            <div v-else class="grid grid-cols-12 gap-3">
+
+                <!-- LEFT: Product + Components -->
+                <div class="col-span-7 space-y-3">
 
                     <!-- Product -->
-                    <div class="rounded-xl bg-white p-4 shadow">
-                        <div class="font-semibold mb-2">Select product</div>
-                        <select v-model="selectedProductId" class="w-full rounded border p-2">
-                            <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
-                        </select>
+                    <div class="rounded-xl bg-white p-3 shadow">
+                        <div class="text-xs font-medium text-gray-500 mb-1">Product</div>
+                        <Select v-model="selectedProductId" :options="products" optionLabel="name" optionValue="id"
+                                filter filterPlaceholder="Search..." placeholder="Select product" class="w-full" />
                     </div>
 
                     <!-- Components -->
-                    <div v-if="selectedProduct" class="rounded-xl bg-white p-4 shadow space-y-4">
-                        <div
-                            v-for="(c, i) in selectedProduct.components"
-                            :key="c.id"
-                            class="flex items-center justify-between border-b pb-3"
-                        >
-                            <div>
-                                <div class="text-sm uppercase text-gray-500">{{ c.name }}</div>
-                                <div class="text-xl font-semibold">{{ c.grams }} g</div>
-                            </div>
-
-                            <div class="flex items-center gap-2">
-                                <button class="h-8 w-8 rounded-full border" @click="decreaseComponent(i, step)">-</button>
-                                <button class="h-8 w-8 rounded-full border" @click="increaseComponent(i, step)">+</button>
+                    <div v-if="selectedProduct" class="rounded-xl bg-white p-3 shadow space-y-1">
+                        <div v-for="(c, i) in selectedProduct.components" :key="c.id"
+                             class="flex items-center justify-between border-b py-2 last:border-0">
+                            <div class="text-xs uppercase text-gray-400 min-w-0 flex-1 pr-2 truncate">{{ c.name }}</div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button class="h-7 w-7 rounded-full border text-base leading-none" @click="decreaseComponent(i, step)">−</button>
+                                <div class="flex items-center">
+                                    <input
+                                        type="number" min="0" step="1"
+                                        :value="c.grams"
+                                        @input="setGrams(i, $event)"
+                                        class="w-16 rounded border p-1 text-center text-sm"
+                                    />
+                                    <span class="text-xs text-gray-400 ml-0.5">g</span>
+                                </div>
+                                <button class="h-7 w-7 rounded-full border text-base leading-none" @click="increaseComponent(i, step)">+</button>
                                 <button
-                                    v-if="freeGrams > 0"
-                                    class="h-8 w-8 rounded-full border text-yellow-600"
-                                    @click="takeAllFree(i)"
-                                    title="Take all free grams"
-                                >⚡</button>
+                                        class="h-7 w-7 rounded-full border text-xs transition"
+                                        :class="freeGrams > 0 ? 'text-yellow-500' : 'text-gray-300 cursor-not-allowed'"
+                                        :disabled="freeGrams <= 0"
+                                        title="Take all free grams" @click="takeAllFree(i)">⚡</button>
                             </div>
                         </div>
-
-                        <div class="text-center mt-4">
-              <span class="rounded-full bg-gray-100 px-4 py-1 text-sm">
-                Free grams: {{ freeGrams }} g · Price/kg: {{ nf(pricePerKg) }} €
-              </span>
-                        </div>
-                    </div>
-
-                    <!-- Costs -->
-                    <div class="rounded-xl bg-white p-4 shadow space-y-3">
-                        <div class="font-semibold">Additional costs</div>
-
-                        <div class="grid grid-cols-2 gap-3 text-sm">
-                            <label>
-                                Packaging material
-                                <input type="number" step="0.01" v-model.number="costs.packaging_material"
-                                       class="w-full rounded border p-2" />
-                            </label>
-
-                            <label>
-                                Production
-                                <input type="number" step="0.01" v-model.number="costs.production"
-                                       class="w-full rounded border p-2" />
-                            </label>
-
-                            <label>
-                                Packaging
-                                <input type="number" step="0.01" v-model.number="costs.packaging"
-                                       class="w-full rounded border p-2" />
-                            </label>
-
-                            <label>
-                                Transportation
-                                <input type="number" step="0.01" v-model.number="costs.transportation"
-                                       class="w-full rounded border p-2" />
-                            </label>
-
-                            <label>
-                                Multi delivery
-                                <input type="number" step="0.01" v-model.number="costs.multi_delivery"
-                                       class="w-full rounded border p-2" />
-                            </label>
-
-                            <label>
-                                Sell percent (%)
-                                <input type="number" step="1" v-model.number="costs.sell_percent"
-                                       class="w-full rounded border p-2" />
-                            </label>
-
-                            <label class="col-span-2">
-                                Commission (%)
-                                <input type="number" step="0.5" min="0" max="100" v-model.number="commissionPct"
-                                       class="w-full rounded border p-2 border-purple-300 focus:border-purple-500" />
-                            </label>
+                        <div class="pt-1 text-center">
+                            <span class="rounded-full bg-gray-100 px-3 py-0.5 text-xs text-gray-500">
+                                Free: {{ freeGrams }} g &nbsp;·&nbsp; Price/kg: {{ nf(pricePerKg) }} €
+                            </span>
                         </div>
                     </div>
 
 
-                    <!-- Portion & Box -->
-                    <div class="rounded-xl bg-white p-4 shadow space-y-3">
-                        <div class="font-semibold">Portion & packaging</div>
-                        <div class="grid grid-cols-2 gap-3 text-sm">
-                            <label>
-                                Portion weight (g)
-                                <input type="number" step="1" min="1" v-model.number="portionGrams"
-                                       class="w-full rounded border p-2" />
-                            </label>
-                            <label>
-                                Units per box
-                                <input type="number" step="1" min="1" v-model.number="unitsPerBox"
-                                       class="w-full rounded border p-2" />
-                            </label>
-                        </div>
-                        <div class="text-xs text-gray-500 text-center">
-                            1 kg → {{ portionGrams > 0 ? nf(1000 / portionGrams, 1) : '—' }} portions ·
-                            box = {{ portionGrams > 0 ? nf(portionGrams * unitsPerBox / 1000, 3) : '—' }} kg
+                    <!-- BOTTOM ROW: Costs accordion + Add to order + Save order -->
+                    <div v-if="products.length" class="flex gap-3 items-stretch">
+                        <!-- Costs accordion -->
+                        <div class="flex-1 rounded-xl bg-white p-3 shadow">
+                            <button class="flex w-full items-center justify-between text-sm font-semibold"
+                                    @click="costsOpen = !costsOpen">
+                                <span>Additional costs — per order</span>
+                                <span class="text-xs text-gray-400">{{ costsOpen ? '▲ hide' : '▼ show' }}</span>
+                            </button>
+                            <div v-show="costsOpen" class="mt-2 grid grid-cols-6 gap-2 text-xs">
+                                <label>Pkg. mat.
+                                    <input type="number" step="0.01" v-model.number="costs.packaging_material"
+                                           class="mt-0.5 w-full rounded border p-1.5" />
+                                </label>
+                                <label>Production
+                                    <input type="number" step="0.01" v-model.number="costs.production"
+                                           class="mt-0.5 w-full rounded border p-1.5" />
+                                </label>
+                                <label>Packaging
+                                    <input type="number" step="0.01" v-model.number="costs.packaging"
+                                           class="mt-0.5 w-full rounded border p-1.5" />
+                                </label>
+                                <label>Transport
+                                    <input type="number" step="0.01" v-model.number="costs.transportation"
+                                           class="mt-0.5 w-full rounded border p-1.5" />
+                                </label>
+                                <label>Multi del.
+                                    <input type="number" step="0.01" v-model.number="costs.multi_delivery"
+                                           class="mt-0.5 w-full rounded border p-1.5" />
+                                </label>
+                                <label>Sell %
+                                    <input type="number" step="1" v-model.number="costs.sell_percent"
+                                           class="mt-0.5 w-full rounded border p-1.5" />
+                                </label>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Final -->
-                    <div class="rounded-xl bg-white p-4 shadow text-center space-y-3">
-                        <div class="text-gray-500 text-sm">Final price per kg</div>
-                        <div class="text-3xl font-bold text-blue-600">{{ nf(finalPrice) }} €</div>
-                        <div v-if="portionGrams > 0" class="text-sm text-gray-500">
-                            Per portion ({{ portionGrams }}g): {{ nf(finalPrice * portionGrams / 1000, 4) }} € ·
-                            Per box (×{{ unitsPerBox }}): {{ nf(finalPrice * portionGrams / 1000 * unitsPerBox, 4) }} €
-                        </div>
-
-                        <button class="rounded bg-green-600 px-4 py-2 text-white" @click="addToOrder">
+                    <!-- Buttons -->
+                    <div class="flex flex-col gap-2 justify-end">
+                        <button class="rounded bg-green-600 px-5 py-2 text-sm text-white hover:bg-green-700 transition whitespace-nowrap"
+                                @click="addToOrder">
                             ➕ Add to order
                         </button>
                     </div>
-                </template>
-            </div>
+                </div>
 
-            <!-- RIGHT -->
-            <div class="col-span-4">
-                <div class="rounded-xl bg-white p-6 shadow space-y-4 sticky top-6">
-                    <div class="font-semibold">Order items</div>
+                <!-- RIGHT: Portion + Price + Items -->
+                <div class="col-span-5">
+                    <div class="rounded-xl bg-white p-3 shadow space-y-3">
 
-                    <div v-if="!orderItems.length" class="text-sm text-gray-500">
-                        No items yet.
-                    </div>
-
-                    <div v-for="(item, i) in orderItems" :key="i" class="border rounded p-2">
-                        <div class="font-semibold">{{ item.product_name }}</div>
-                        <div class="text-xs text-gray-500">{{ nf(item.final_price) }} €/kg</div>
-                        <div class="text-xs text-gray-500 mt-0.5">
-                            {{ item.portion_grams }}g × {{ item.units_per_box }} pcs/box
+                        <!-- Portion & Box + Final -->
+                        <div class="space-y-2">
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <label>Portion (g)
+                                    <input type="number" step="1" min="1" v-model.number="portionGrams"
+                                           class="mt-0.5 w-full rounded border p-1.5" />
+                                </label>
+                                <label>Units/box
+                                    <input type="number" step="1" min="1" v-model.number="unitsPerBox"
+                                           class="mt-0.5 w-full rounded border p-1.5" />
+                                </label>
+                            </div>
+                            <div class="text-xs text-gray-400 text-center">
+                                box net weight = {{ portionGrams > 0 ? nf(portionGrams * unitsPerBox / 1000, 3) : '—' }} kg
+                            </div>
+                            <div class="text-center">
+                                <span class="text-2xl font-bold text-blue-600">{{ nf(finalPrice) }} €</span>
+                                <span class="text-xs text-gray-400 ml-1">/kg</span>
+                                <div v-if="portionGrams > 0" class="text-xs text-gray-500 mt-0.5">
+                                    {{ nf(finalPrice * portionGrams / 1000, 4) }} €/portion ·
+                                    {{ nf(finalPrice * portionGrams / 1000 * unitsPerBox, 4) }} €/box
+                                </div>
+                            </div>
                         </div>
 
-                        <ul class="text-xs mt-1">
-                            <li v-for="c in item.components" :key="c.id">
-                                {{ c.name }} – {{ c.grams }} g
-                            </li>
-                        </ul>
+                        <!-- Order items -->
+                        <div class="border-t pt-2 space-y-1">
+                            <div class="text-sm font-semibold">Order items</div>
+                            <div v-if="!orderItems.length" class="text-xs text-gray-400">No items yet.</div>
+                            <div class="space-y-1 max-h-[45vh] overflow-y-auto pr-1">
+                                <div v-for="(item, i) in orderItems" :key="i"
+                                     class="relative rounded border p-2 text-xs">
+                                    <button class="absolute top-1 right-1 text-red-400 hover:text-red-600 px-1"
+                                            title="Remove" @click="orderItems.splice(i, 1)">✕</button>
+                                    <div class="font-semibold pr-4">{{ item.product_name }}</div>
+                                    <div class="text-gray-500">
+                                        {{ nf(item.final_price) }} €/kg · {{ item.portion_grams }}g × {{ item.units_per_box }}
+                                    </div>
+                                    <ul class="mt-0.5 text-gray-400">
+                                        <li v-for="c in item.components" :key="c.id">{{ c.name }} – {{ c.grams }}g</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button style="width: 100%;" class="rounded bg-blue-600 px-5 py-2 text-sm text-white hover:bg-blue-700 transition whitespace-nowrap"
+                                @click="saveOrder">
+                            Save order
+                        </button>
+
                     </div>
-
-                    <button class="w-full rounded bg-blue-600 py-2 text-white" @click="saveOrder">
-                        Save order
-                    </button>
-
                 </div>
             </div>
+
+
         </div>
     </AppLayout>
 </template>

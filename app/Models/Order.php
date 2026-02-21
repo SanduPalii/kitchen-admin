@@ -17,6 +17,12 @@ class Order extends Model{
         'approved',
         'date',
         'commission_pct',
+        'packaging_material',
+        'production',
+        'packaging',
+        'transportation',
+        'multi_delivery',
+        'sell_percent',
     ];
 
     public function products()
@@ -24,12 +30,6 @@ class Order extends Model{
         return $this->belongsToMany(Product::class, 'order_products')
             ->withPivot([
                 'price',
-                'packaging_material_price',
-                'production_price',
-                'packaging_price',
-                'transportation_price',
-                'multi_delivery_price',
-                'sell_percent',
                 'portion_grams',
                 'units_per_box',
             ])

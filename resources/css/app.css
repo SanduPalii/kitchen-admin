@@ -174,3 +174,11 @@
 .hidden_btn{
     display: none !important;
 }
+
+button{
+    cursor: pointer;
+}
+
+button:disabled{
+    cursor: not-allowed;
+}

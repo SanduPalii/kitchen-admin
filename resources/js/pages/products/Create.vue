@@ -3,22 +3,56 @@ import { Head, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import InputError from '@/components/InputError.vue';
 import Select from 'primevue/select';
+import { computed } from 'vue';
 
 const props = defineProps<{
     components: { id: number; name: string }[];
 }>();
 
 const form = useForm({
+    name_en: '',
     name_fi: '',
     name_ee: '',
-    name_en: '',
     type: 'base',
-    items: [{ component_id: null as number | null, quantity: 1 }],
+    items: [{ component_id: null as number | null, quantity: 0 }],
 });
 
-const addRow = () => form.items.push({ component_id: null, quantity: 1 });
-const removeRow = (i: number) => form.items.splice(i, 1);
-const submit = () => form.post('/products');
+const totalGrams = computed(() =>
+    form.items.reduce((s, item) => s + (Math.round(Number(item.quantity) || 0)), 0)
+)
+
+const duplicateComponentIds = computed(() => {
+    const seen = new Set<number>()
+    const dupes = new Set<number>()
+    for (const item of form.items) {
+        if (item.component_id !== null) {
+            if (seen.has(item.component_id)) dupes.add(item.component_id)
+            else seen.add(item.component_id)
+        }
+    }
+    return dupes
+})
+
+const hasDuplicates = computed(() => duplicateComponentIds.value.size > 0)
+
+const addRow = () => {
+    if (form.items.length >= 3) return
+    form.items.push({ component_id: null, quantity: 0 })
+}
+
+const removeRow = (i: number) => form.items.splice(i, 1)
+
+const setQuantity = (i: number, ev: Event) => {
+    const raw = parseInt((ev.target as HTMLInputElement).value, 10)
+    if (isNaN(raw)) return
+    const others = form.items.reduce((s, item, idx) =>
+        idx !== i ? s + (Number(item.quantity) || 0) : s, 0)
+    const clamped = Math.max(0, Math.min(raw, 1000 - others))
+    form.items[i].quantity = clamped
+    ;(ev.target as HTMLInputElement).value = String(clamped)
+}
+
+const submit = () => form.post('/products')
 </script>
 
 <template>
@@ -28,14 +62,29 @@ const submit = () => form.post('/products');
 
             <h1 class="text-xl font-bold">Create product</h1>
 
-            <input v-model="form.name_fi" class="w-full rounded border p-2" placeholder="Name (FI)" />
-            <InputError :message="form.errors.name_fi" />
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Name (EN) <span class="text-red-500">*</span>
+                </label>
+                <input v-model="form.name_en" class="w-full rounded border p-2" placeholder="Name in English" />
+                <InputError :message="form.errors.name_en" />
+            </div>
 
-            <input v-model="form.name_ee" class="w-full rounded border p-2" placeholder="Name (EE)" />
-            <InputError :message="form.errors.name_ee" />
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Name (FI) <span class="text-xs text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input v-model="form.name_fi" class="w-full rounded border p-2" placeholder="Name in Finnish" />
+                <InputError :message="form.errors.name_fi" />
+            </div>
 
-            <input v-model="form.name_en" class="w-full rounded border p-2" placeholder="Name (EN)" />
-            <InputError :message="form.errors.name_en" />
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Name (EE) <span class="text-xs text-gray-400 font-normal">(optional)</span>
+                </label>
+                <input v-model="form.name_ee" class="w-full rounded border p-2" placeholder="Name in Estonian" />
+                <InputError :message="form.errors.name_ee" />
+            </div>
 
             <select v-model="form.type" class="w-full rounded border p-2">
                 <option value="base">Base</option>
@@ -48,43 +97,69 @@ const submit = () => form.post('/products');
                 <div
                     v-for="(item, i) in form.items"
                     :key="i"
-                    class="flex gap-2 rounded py-2"
+                    class="flex flex-col gap-1 rounded py-2"
                 >
-                    <div class="flex-1">
-                        <Select
-                            v-model="item.component_id"
-                            :options="components"
-                            optionLabel="name"
-                            optionValue="id"
-                            filter
-                            filterPlaceholder="Search..."
-                            placeholder="Select component"
-                            class="w-full"
-                        />
+                    <div class="flex gap-2 items-center">
+                        <div class="flex-1">
+                            <Select
+                                v-model="item.component_id"
+                                :options="components"
+                                optionLabel="name"
+                                optionValue="id"
+                                filter
+                                filterPlaceholder="Search..."
+                                placeholder="Select component"
+                                class="w-full"
+                            />
+                        </div>
+
+                        <div class="flex items-center gap-1">
+                            <input
+                                :value="item.quantity"
+                                @input="setQuantity(i, $event)"
+                                type="number" min="0" max="1000" step="1"
+                                class="w-24 rounded border p-2 text-right"
+                            />
+                            <span class="text-sm text-gray-500">g</span>
+                        </div>
+
+                        <button
+                            v-if="form.items.length > 1"
+                            class="rounded bg-red-500 px-2 py-2 text-white"
+                            @click="removeRow(i)"
+                        >
+                            ✕
+                        </button>
                     </div>
-
-                    <input v-model.number="item.quantity" type="number" step="0.001" class="w-32 rounded border p-2" />
-
-                    <button
-                        v-if="form.items.length > 1"
-                        class="rounded bg-red-500 px-2 text-white"
-                        @click="removeRow(i)"
-                    >
-                        ✕
-                    </button>
+                    <p v-if="item.component_id != null && duplicateComponentIds.has(item.component_id)"
+                       class="text-xs text-red-500">
+                        This component is already added
+                    </p>
                 </div>
 
-                <InputError :message="form.errors[`items.${i}.component_id`]" />
-                <InputError :message="form.errors[`items.${i}.quantity`]" />
+                <!-- Total grams indicator -->
+                <div class="flex items-center gap-2 text-sm">
+                    <span :class="totalGrams > 1000 ? 'text-red-600 font-semibold' : 'text-gray-500'">
+                        Total: {{ totalGrams }} / 1000 g
+                    </span>
+                    <span v-if="totalGrams > 1000" class="text-red-500 text-xs">⚠ exceeds 1 kg</span>
+                </div>
             </div>
 
-            <button class="rounded bg-gray-200 px-3 py-1" @click="addRow">
-                + Add component
-            </button>
+            <div class="flex items-center gap-3">
+                <button
+                    class="rounded bg-gray-200 px-3 py-1 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                    :disabled="form.items.length >= 3"
+                    @click="addRow"
+                >
+                    + Add component
+                </button>
+                <span v-if="form.items.length >= 3" class="text-xs text-gray-400">Max 3 components</span>
+            </div>
 
             <button
-                class="rounded bg-blue-600 px-4 py-2 text-white"
-                :disabled="form.processing"
+                class="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-40"
+                :disabled="form.processing || hasDuplicates"
                 @click="submit"
             >
                 Save

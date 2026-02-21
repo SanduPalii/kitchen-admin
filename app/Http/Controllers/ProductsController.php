@@ -35,9 +35,9 @@ class ProductsController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name_fi' => 'required|string|max:255',
-            'name_ee' => 'required|string|max:255',
             'name_en' => 'required|string|max:255',
+            'name_fi' => 'nullable|string|max:255',
+            'name_ee' => 'nullable|string|max:255',
             'type' => 'required|in:base,vegan,vegetarian',
             'items' => 'required|array|min:1',
             'items.*.component_id' => 'required|exists:components,id',
@@ -69,9 +69,9 @@ class ProductsController extends Controller
     public function update(Request $request, Product $product)
     {
         $data = $request->validate([
-            'name_fi' => 'required|string|max:255',
-            'name_ee' => 'required|string|max:255',
             'name_en' => 'required|string|max:255',
+            'name_fi' => 'nullable|string|max:255',
+            'name_ee' => 'nullable|string|max:255',
             'type' => 'required|in:base,vegan,vegetarian',
             'items' => 'required|array|min:1',
             'items.*.component_id' => 'required|exists:components,id',

@@ -55,11 +55,17 @@ class OrdersController extends Controller
 
         return Inertia::render('orders/Show', [
             'order' => [
-                'id' => $order->id,
-                'price' => (float) $order->price,
-                'size' => $order->size,
-                'approved' => (bool) $order->approved,
-                'date' => $order->date,
+                'id'                 => $order->id,
+                'price'              => (float) $order->price,
+                'size'               => $order->size,
+                'approved'           => (bool) $order->approved,
+                'date'               => $order->date,
+                'packaging_material' => (float) $order->packaging_material,
+                'production'         => (float) $order->production,
+                'packaging'          => (float) $order->packaging,
+                'transportation'     => (float) $order->transportation,
+                'multi_delivery'     => (float) $order->multi_delivery,
+                'sell_percent'       => (float) $order->sell_percent,
 
                 'client' => $order->client ? [
                     'id' => $order->client->id,
@@ -82,12 +88,6 @@ class OrdersController extends Controller
 
                         'pivot' => [
                             'price' => (float) $product->pivot->price,
-                            'packaging_material_price' => (float) $product->pivot->packaging_material_price,
-                            'production_price' => (float) $product->pivot->production_price,
-                            'packaging_price' => (float) $product->pivot->packaging_price,
-                            'transportation_price' => (float) $product->pivot->transportation_price,
-                            'multi_delivery_price' => (float) $product->pivot->multi_delivery_price,
-                            'sell_percent' => (float) $product->pivot->sell_percent,
                         ],
 
                         'components' => $orderProduct
@@ -117,8 +117,23 @@ class OrdersController extends Controller
         return back()->with('success', 'Commission updated');
     }
 
+    public function approve(Order $order)
+    {
+        if ($order->approved) {
+            return back()->with('error', 'Order is already approved.');
+        }
+
+        $order->update(['approved' => true]);
+
+        return back()->with('success', "Order #{$order->id} approved.");
+    }
+
     public function destroy(Order $order)
     {
+        if ($order->approved) {
+            return back()->with('error', 'Approved orders cannot be deleted.');
+        }
+
         $order->products()->detach();
         $order->delete();
 
@@ -169,48 +184,57 @@ class OrdersController extends Controller
             ->where('order_id', $order->id)
             ->get();
 
+        // Pass raw food cost per kg so the frontend can recompute when costs change
         $items = $orderProducts->map(function (OrderProduct $op) {
             $portionGrams = (int) ($op->portion_grams ?? 320);
 
-            // Food cost per kg from stored components
             $foodCostPerKg = $op->components->sum(fn ($c) =>
                 (float) $c->price_per_kg * (float) $c->grams / 1000
             );
-
-            // Additional costs (all stored per kg in the calculator)
-            $additionalPerKg = (float) $op->packaging_material_price
-                + (float) $op->production_price
-                + (float) $op->packaging_price
-                + (float) $op->transportation_price
-                + (float) $op->multi_delivery_price;
-
-            $productCost  = round($foodCostPerKg * $portionGrams / 1000, 4);
-            $addCosts     = round(($foodCostPerKg + $additionalPerKg) * $portionGrams / 1000, 4);
-            $sellingPrice = round($addCosts * (1 + (float) $op->sell_percent / 100), 4);
 
             $rawName   = $op->product?->name_en ?? ('#' . $op->product_id);
             $cleanName = trim(preg_replace('/\s*\((vegan|vegetarian)\)/i', '', $rawName));
 
             return [
-                'name'          => $cleanName,
-                'type'          => $op->product?->type ?? 'base',
-                'portion_grams' => $portionGrams,
-                'product_cost'  => $productCost,
-                'add_costs'     => $addCosts,
-                'selling_price' => $sellingPrice,
-                'sell_percent'  => (float) $op->sell_percent,
+                'name'             => $cleanName,
+                'type'             => $op->product?->type ?? 'base',
+                'portion_grams'    => $portionGrams,
+                'food_cost_per_kg' => round($foodCostPerKg, 6),
             ];
         })->values();
 
         return Inertia::render('orders/PricingInternal', [
             'order' => [
-                'id'             => $order->id,
-                'date'           => $order->date,
-                'client_name'    => $order->client?->name ?? '—',
-                'commission_pct' => (float) $order->commission_pct,
+                'id'                 => $order->id,
+                'date'               => $order->date,
+                'client_name'        => $order->client?->name ?? '—',
+                'commission_pct'     => (float) $order->commission_pct,
+                'packaging_material' => (float) $order->packaging_material,
+                'production'         => (float) $order->production,
+                'packaging'          => (float) $order->packaging,
+                'transportation'     => (float) $order->transportation,
+                'multi_delivery'     => (float) $order->multi_delivery,
+                'sell_percent'       => (float) $order->sell_percent,
             ],
             'items' => $items,
         ]);
+    }
+
+    public function updateSettings(Request $request, Order $order)
+    {
+        $data = $request->validate([
+            'commission_pct'     => 'required|numeric|min:0|max:100',
+            'packaging_material' => 'required|numeric|min:0',
+            'production'         => 'required|numeric|min:0',
+            'packaging'          => 'required|numeric|min:0',
+            'transportation'     => 'required|numeric|min:0',
+            'multi_delivery'     => 'required|numeric|min:0',
+            'sell_percent'       => 'required|numeric|min:0',
+        ]);
+
+        $order->update($data);
+
+        return back()->with('success', 'Settings updated');
     }
 
     private function buildPricingPdfData(Order $order): array
@@ -257,10 +281,14 @@ class OrdersController extends Controller
         $allGrams    = $items->pluck('portion_grams')->unique();
         $gramsSuffix = $allGrams->count() === 1 ? ' ' . $allGrams->first() . 'g' : '';
 
+        $allBoxSizes = $items->pluck('units_per_box')->unique();
+        $boxSize     = $allBoxSizes->count() === 1 ? $allBoxSizes->first() : 8;
+
         return [
             'order'          => $order,
             'client_name'    => $order->client?->name ?? '—',
             'grams_suffix'   => $gramsSuffix,
+            'box_size'       => $boxSize,
             'date_formatted' => $dateFormatted,
             'logo'           => $logo,
             'items'          => $items,
@@ -289,14 +317,6 @@ class OrdersController extends Controller
                 return [
                     'product_name' => $op->product?->name_en ?? ('#' . $op->product_id),
                     'price' => (float)$op->price,
-
-                    'packaging_material_price' => (float)$op->packaging_material_price,
-                    'production_price' => (float)$op->production_price,
-                    'packaging_price' => (float)$op->packaging_price,
-                    'transportation_price' => (float)$op->transportation_price,
-                    'multi_delivery_price' => (float)$op->multi_delivery_price,
-                    'sell_percent' => (float)$op->sell_percent,
-
                     'components' => $op->components->map(function ($c) {
                         return [
                             'name' => $c->component?->name ?? ('#' . $c->component_id),
