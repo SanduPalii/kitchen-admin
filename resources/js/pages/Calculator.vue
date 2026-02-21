@@ -62,7 +62,7 @@ const costs = ref({
 
 const commissionPct = ref(5)
 
-const nf = (v: number, d = 2) => v.toFixed(d).replace('.', ',')
+const nf = (v: number | string, d = 2) => Number(v).toFixed(d).replace('.', ',')
 
 function cloneProduct(p?: Product | null): Product | null {
     if (!p) return null

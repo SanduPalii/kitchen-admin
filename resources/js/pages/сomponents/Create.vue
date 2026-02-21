@@ -80,7 +80,7 @@ const submit = () => {
                 <div
                     v-for="(item, i) in form.items"
                     :key="i"
-                    class="flex flex-col gap-1 rounded border p-2"
+                    class="flex flex-col gap-1 rounded py-2"
                 >
                     <div class="flex gap-2">
                         <select

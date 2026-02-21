@@ -47,7 +47,7 @@ const submit = () => form.post('/products');
                 <div
                     v-for="(item, i) in form.items"
                     :key="i"
-                    class="flex gap-2 rounded border p-2"
+                    class="flex gap-2 rounded py-2"
                 >
                     <select v-model="item.component_id" class="flex-1 rounded border p-2">
                         <option :value="null" disabled>Select component</option>

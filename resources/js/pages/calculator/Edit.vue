@@ -76,7 +76,7 @@ const costs = ref({
 
 const commissionPct = ref<number>(props.order.commission_pct ?? 5)
 
-const nf = (v: number, d = 2) => v.toFixed(d).replace('.', ',')
+const nf = (v: number | string, d = 2) => Number(v).toFixed(d).replace('.', ',')
 
 // Предзаполняем все позиции заказа из props
 const orderItems = ref<OrderItem[]>(
