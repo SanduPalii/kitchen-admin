@@ -116,9 +116,10 @@ const setGrams = (i: number, ev: Event) => {
 
 const pricePerKg = computed(() => {
     if (!selectedProduct.value) return 0
-    return selectedProduct.value.components.reduce((sum, c) => {
+    const raw = selectedProduct.value.components.reduce((sum, c) => {
         return sum + ((Number(c.price_per_kg) || 0) * (Number(c.grams) || 0)) / 1000
     }, 0)
+    return Math.round(raw * 100) / 100
 })
 
 const finalPrice = computed(() => {
@@ -405,8 +406,8 @@ const saveOrder = () => {
                                 <span class="text-2xl font-bold text-blue-600">{{ nf(finalPrice) }} €</span>
                                 <span class="text-xs text-gray-400 ml-1">/kg</span>
                                 <div v-if="portionGrams > 0" class="text-xs text-gray-500 mt-0.5">
-                                    {{ nf(finalPrice * portionGrams / 1000, 4) }} €/portion ·
-                                    {{ nf(finalPrice * portionGrams / 1000 * unitsPerBox, 4) }} €/box
+                                    {{ nf(+(finalPrice * portionGrams / 1000).toFixed(2)) }} €/portion ·
+                                    {{ nf(+(finalPrice * portionGrams / 1000).toFixed(2) * unitsPerBox) }} €/box
                                 </div>
                             </div>
                         </div>

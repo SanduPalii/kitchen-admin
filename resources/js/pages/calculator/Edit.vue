@@ -174,9 +174,10 @@ const setGrams = (i: number, ev: Event) => {
 
 const pricePerKg = computed(() => {
     if (!editingItem.value) return 0
-    return editingItem.value.components.reduce((sum, c) => {
+    const raw = editingItem.value.components.reduce((sum, c) => {
         return sum + (c.price_per_kg * c.grams) / 1000
     }, 0)
+    return Math.round(raw * 100) / 100
 })
 
 const finalPrice = computed(() => {
@@ -192,7 +193,8 @@ const finalPrice = computed(() => {
 })
 
 function computeItemPrice(item: OrderItem): number {
-    const pkgPerKg = item.components.reduce((sum, c) => sum + (c.price_per_kg * c.grams) / 1000, 0)
+    const raw = item.components.reduce((sum, c) => sum + (c.price_per_kg * c.grams) / 1000, 0)
+    const pkgPerKg = Math.round(raw * 100) / 100
     const base =
         pkgPerKg +
         costs.value.packaging_material +
@@ -331,8 +333,8 @@ const saveOrder = () => {
                                 <span class="text-2xl font-bold text-blue-600">{{ nf(finalPrice) }} €</span>
                                 <span class="text-xs text-gray-400 ml-1">/kg</span>
                                 <div v-if="editingItem.portion_grams > 0" class="text-xs text-gray-500 mt-0.5">
-                                    {{ nf(finalPrice * editingItem.portion_grams / 1000, 4) }} €/portion ·
-                                    {{ nf(finalPrice * editingItem.portion_grams / 1000 * editingItem.units_per_box, 4) }} €/box
+                                    {{ nf(+(finalPrice * editingItem.portion_grams / 1000).toFixed(2)) }} €/portion ·
+                                    {{ nf(+(finalPrice * editingItem.portion_grams / 1000).toFixed(2) * editingItem.units_per_box) }} €/box
                                 </div>
                             </div>
                         </div>

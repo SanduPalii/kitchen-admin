@@ -199,7 +199,7 @@ class OrdersController extends Controller
                 'name'             => $cleanName,
                 'type'             => $op->product?->type ?? 'base',
                 'portion_grams'    => $portionGrams,
-                'food_cost_per_kg' => round($foodCostPerKg, 6),
+                'food_cost_per_kg' => round($foodCostPerKg, 2),
             ];
         })->values();
 
