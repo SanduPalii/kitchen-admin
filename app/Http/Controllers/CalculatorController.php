@@ -47,8 +47,20 @@ class CalculatorController extends Controller
 
         return Inertia::render('Calculator', [
             'products' => $products,
-            'clients' => Client::select('id', 'name')->get(),
-            'locations' => Location::select('id', 'name', 'price')->get(),
+            'clients' => Client::with('location:id,name,price')->select('id', 'name', 'phone', 'location_id')->get()
+                ->map(fn($c) => [
+                    'id'             => $c->id,
+                    'name'           => $c->name,
+                    'phone'          => $c->phone,
+                    'location_id'    => $c->location_id,
+                    'location_name'  => $c->location?->name,
+                    'location_price' => (float) ($c->location?->price ?? 0),
+                ]),
+            'locations' => Location::select('id', 'name', 'price')->get()->map(fn($l) => [
+                'id'    => $l->id,
+                'name'  => $l->name,
+                'price' => (float) $l->price,
+            ]),
         ]);
     }
 
@@ -240,8 +252,20 @@ class CalculatorController extends Controller
                     'price_per_kg' => 0,
                 ])->values(),
             ]),
-            'clients' => Client::select('id', 'name')->get(),
-            'locations' => Location::select('id', 'name', 'price')->get(),
+            'clients' => Client::with('location:id,name,price')->select('id', 'name', 'phone', 'location_id')->get()
+                ->map(fn($c) => [
+                    'id'             => $c->id,
+                    'name'           => $c->name,
+                    'phone'          => $c->phone,
+                    'location_id'    => $c->location_id,
+                    'location_name'  => $c->location?->name,
+                    'location_price' => (float) ($c->location?->price ?? 0),
+                ]),
+            'locations' => Location::select('id', 'name', 'price')->get()->map(fn($l) => [
+                'id'    => $l->id,
+                'name'  => $l->name,
+                'price' => (float) $l->price,
+            ]),
         ]);
     }
 

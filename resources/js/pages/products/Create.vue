@@ -108,6 +108,7 @@ const submit = () => form.post('/products')
                                 optionValue="id"
                                 filter
                                 filterPlaceholder="Search..."
+                        autoFilterFocus
                                 placeholder="Select component"
                                 class="w-full"
                             />

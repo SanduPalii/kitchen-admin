@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import Select from 'primevue/select'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 type Component = {
     id: number
@@ -56,8 +56,8 @@ const props = defineProps<{
         }[]
     }
     products: Product[]
-    clients: { id: number; name: string }[]
-    locations: { id: number; name: string }[]
+    clients: { id: number; name: string; phone: string; location_id: number; location_name: string; location_price: number }[]
+    locations: { id: number; name: string; price: number }[]
 }>()
 
 const TOTAL_WEIGHT = 1000
@@ -77,6 +77,15 @@ const costs = ref({
 
 const commissionPct = ref<number>(props.order.commission_pct ?? 5)
 const costsOpen = ref(true)
+
+// When location changes: update transportation cost from location price
+watch(selectedLocationId, (id) => {
+    if (!id) return
+    const location = props.locations.find(l => l.id === id)
+    if (location) {
+        costs.value.transportation = Number(location.price)
+    }
+})
 
 const nf = (v: number | string, d = 2) => Number(v).toFixed(d).replace('.', ',')
 
@@ -183,12 +192,12 @@ const pricePerKg = computed(() => {
 const finalPrice = computed(() => {
     const base =
         pricePerKg.value +
-        costs.value.packaging_material +
-        costs.value.production +
-        costs.value.packaging +
-        costs.value.transportation +
-        costs.value.multi_delivery
-    const percent = base * (costs.value.sell_percent / 100)
+        Number(costs.value.packaging_material) +
+        Number(costs.value.production) +
+        Number(costs.value.packaging) +
+        Number(costs.value.transportation) +
+        Number(costs.value.multi_delivery)
+    const percent = base * (Number(costs.value.sell_percent) / 100)
     return +(base + percent).toFixed(2)
 })
 
@@ -197,12 +206,12 @@ function computeItemPrice(item: OrderItem): number {
     const pkgPerKg = Math.round(raw * 100) / 100
     const base =
         pkgPerKg +
-        costs.value.packaging_material +
-        costs.value.production +
-        costs.value.packaging +
-        costs.value.transportation +
-        costs.value.multi_delivery
-    return +(base * (1 + costs.value.sell_percent / 100)).toFixed(2)
+        Number(costs.value.packaging_material) +
+        Number(costs.value.production) +
+        Number(costs.value.packaging) +
+        Number(costs.value.transportation) +
+        Number(costs.value.multi_delivery)
+    return +(base * (1 + Number(costs.value.sell_percent) / 100)).toFixed(2)
 }
 
 const saveOrder = () => {
@@ -261,12 +270,28 @@ const saveOrder = () => {
                     <div>
                         <div class="text-xs font-medium text-gray-500 mb-1">Client</div>
                         <Select v-model="selectedClientId" :options="clients" optionLabel="name" optionValue="id"
-                                filter filterPlaceholder="Search..." placeholder="Select client" class="w-full" />
+                                filter filterPlaceholder="Search..." placeholder="Select client" class="w-full"
+                                autoFilterFocus>
+                            <template #option="{ option }">
+                                <div>
+                                    <div class="font-medium">{{ option.name }}</div>
+                                    <div class="text-xs text-gray-400 mt-0.5">{{ option.phone }} · {{ option.location_name }}</div>
+                                </div>
+                            </template>
+                            <template #value="slotProps">
+                                <template v-if="slotProps.value">
+                                    <span>{{ clients.find(c => c.id === slotProps.value)?.name }}</span>
+                                    <span class="text-xs text-gray-400 ml-1">· {{ clients.find(c => c.id === slotProps.value)?.phone }}</span>
+                                </template>
+                                <span v-else class="text-gray-400">Select client</span>
+                            </template>
+                        </Select>
                     </div>
                     <div>
                         <div class="text-xs font-medium text-gray-500 mb-1">Location</div>
                         <Select v-model="selectedLocationId" :options="locations" optionLabel="name" optionValue="id"
-                                filter filterPlaceholder="Search..." placeholder="Select location" class="w-full" />
+                                filter filterPlaceholder="Search..." placeholder="Select location" class="w-full"
+                                autoFilterFocus />
                     </div>
                     <div>
                         <div class="text-xs font-medium text-gray-500 mb-1">Commission (%)</div>
@@ -411,7 +436,8 @@ const saveOrder = () => {
                         <div class="border-t pt-3 space-y-2">
                             <div class="text-xs font-medium text-gray-500">Add product</div>
                             <Select v-model="addProductId" :options="products" optionLabel="name" optionValue="id"
-                                    filter filterPlaceholder="Search..." placeholder="Select product" class="w-full" />
+                                    filter filterPlaceholder="Search..." placeholder="Select product" class="w-full"
+                                    autoFilterFocus />
                             <div class="grid grid-cols-2 gap-2 text-xs">
                                 <label>Portion (g)
                                     <input type="number" min="1" step="1" v-model.number="addPortionGrams"

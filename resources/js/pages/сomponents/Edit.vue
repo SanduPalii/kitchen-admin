@@ -139,6 +139,7 @@ const submit = () => {
                         optionValue="id"
                         filter
                         filterPlaceholder="Search..."
+                        autoFilterFocus
                         placeholder="Select ingredient"
                         class="w-full text-sm"
                     />

@@ -49,7 +49,8 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/Login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'canRegister' => Features::enabled(Features::registration()),
+            // Registration link is hidden by default; only accessible via invite link with code
+            'canRegister' => false,
             'status' => $request->session()->get('status'),
         ]));
 
@@ -66,7 +67,21 @@ class FortifyServiceProvider extends ServiceProvider
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::registerView(fn () => Inertia::render('auth/Register'));
+        Fortify::registerView(function (Request $request) {
+            $code = env('REGISTRATION_CODE', '');
+            $provided = $request->query('code', $request->session()->get('_reg_code', ''));
+
+            if ($code && $provided !== $code) {
+                return redirect()->route('login');
+            }
+
+            // Store in session so page reload doesn't lose the code
+            if ($code) {
+                $request->session()->put('_reg_code', $provided);
+            }
+
+            return Inertia::render('auth/Register');
+        });
 
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/TwoFactorChallenge'));
 

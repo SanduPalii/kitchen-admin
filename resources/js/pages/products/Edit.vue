@@ -119,6 +119,7 @@ const submit = () => form.put(`/products/${props.product.id}`)
                                 optionValue="id"
                                 filter
                                 filterPlaceholder="Search..."
+                        autoFilterFocus
                                 placeholder="Select component"
                                 class="w-full"
                             />

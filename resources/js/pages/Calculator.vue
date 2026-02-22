@@ -19,6 +19,21 @@ type Product = {
     components: Component[]
 }
 
+type Client = {
+    id: number
+    name: string
+    phone: string
+    location_id: number
+    location_name: string
+    location_price: number
+}
+
+type Location = {
+    id: number
+    name: string
+    price: number
+}
+
 type OrderItem = {
     product_id: number
     product_name: string
@@ -32,8 +47,8 @@ const confirm = useConfirm()
 
 const props = defineProps<{
     products: Product[]
-    clients: { id: number; name: string }[]
-    locations: { id: number; name: string }[]
+    clients: Client[]
+    locations: Location[]
 }>()
 
 const TOTAL_WEIGHT = 1000
@@ -48,6 +63,7 @@ const selectedClientId = ref<number | null>(null)
 const selectedLocationId = ref<number | null>(props.locations?.[0]?.id ?? null)
 
 const orderItems = ref<OrderItem[]>([])
+const editingItemIndex = ref<number | null>(null)
 
 const portionGrams = ref<number>(100)
 const unitsPerBox = ref<number>(4)
@@ -66,15 +82,37 @@ const costsOpen = ref(true)
 
 const nf = (v: number | string, d = 2) => Number(v).toFixed(d).replace('.', ',')
 
-
 function cloneProduct(p?: Product | null): Product | null {
     if (!p) return null
     return { ...p, components: (p.components ?? []).map(c => ({ ...c })) }
 }
 
+// Flag to skip product watcher when editing an existing order item
+let skipProductWatch = false
+
 watch(selectedProductId, (id) => {
+    if (skipProductWatch) { skipProductWatch = false; return }
     const p = products.value.find(p => p.id === id) ?? null
     selectedProduct.value = cloneProduct(p)
+})
+
+// When client changes: auto-set location and transportation from client's location
+watch(selectedClientId, (id) => {
+    if (!id) return
+    const client = props.clients.find(c => c.id === id)
+    if (client && client.location_id) {
+        selectedLocationId.value = client.location_id
+        // transportation will be updated by location watcher
+    }
+})
+
+// When location changes: update transportation cost from location price
+watch(selectedLocationId, (id) => {
+    if (!id) return
+    const location = props.locations.find(l => l.id === id)
+    if (location) {
+        costs.value.transportation = Number(location.price)
+    }
 })
 
 const freeGrams = computed(() => {
@@ -125,15 +163,34 @@ const pricePerKg = computed(() => {
 const finalPrice = computed(() => {
     const base =
         pricePerKg.value +
-        costs.value.packaging_material +
-        costs.value.production +
-        costs.value.packaging +
-        costs.value.transportation +
-        costs.value.multi_delivery
+        Number(costs.value.packaging_material) +
+        Number(costs.value.production) +
+        Number(costs.value.packaging) +
+        Number(costs.value.transportation) +
+        Number(costs.value.multi_delivery)
 
-    const percent = base * (costs.value.sell_percent / 100)
+    const percent = base * (Number(costs.value.sell_percent) / 100)
     return +(base + percent).toFixed(2)
 })
+
+// Load an existing order item into the editor
+const startEditItem = (i: number) => {
+    const item = orderItems.value[i]
+    editingItemIndex.value = i
+    skipProductWatch = true
+    selectedProductId.value = item.product_id
+    selectedProduct.value = {
+        id: item.product_id,
+        name: item.product_name,
+        components: item.components.map(c => ({ ...c })),
+    }
+    portionGrams.value = item.portion_grams
+    unitsPerBox.value = item.units_per_box
+}
+
+const cancelEdit = () => {
+    editingItemIndex.value = null
+}
 
 const addToOrder = () => {
     if (!selectedClientId.value) {
@@ -160,14 +217,21 @@ const addToOrder = () => {
         return
     }
 
-    orderItems.value.push({
+    const newItem: OrderItem = {
         product_id: selectedProduct.value.id,
         product_name: selectedProduct.value.name,
         components: selectedProduct.value.components.map(c => ({ ...c })),
         final_price: finalPrice.value,
         portion_grams: portionGrams.value,
         units_per_box: unitsPerBox.value,
-    })
+    }
+
+    if (editingItemIndex.value !== null) {
+        orderItems.value[editingItemIndex.value] = newItem
+        editingItemIndex.value = null
+    } else {
+        orderItems.value.push(newItem)
+    }
 }
 
 const saveOrder = () => {
@@ -265,12 +329,28 @@ const saveOrder = () => {
                     <div>
                         <div class="text-xs font-medium text-gray-500 mb-1">Client</div>
                         <Select v-model="selectedClientId" :options="clients" optionLabel="name" optionValue="id"
-                                filter filterPlaceholder="Search..." placeholder="Select client" class="w-full" />
+                                filter filterPlaceholder="Search..." placeholder="Select client" class="w-full"
+                                autoFilterFocus>
+                            <template #option="{ option }">
+                                <div>
+                                    <div class="font-medium">{{ option.name }}</div>
+                                    <div class="text-xs text-gray-400 mt-0.5">{{ option.phone }} · {{ option.location_name }}</div>
+                                </div>
+                            </template>
+                            <template #value="slotProps">
+                                <template v-if="slotProps.value">
+                                    <span>{{ clients.find(c => c.id === slotProps.value)?.name }}</span>
+                                    <span class="text-xs text-gray-400 ml-1">· {{ clients.find(c => c.id === slotProps.value)?.phone }}</span>
+                                </template>
+                                <span v-else class="text-gray-400">Select client</span>
+                            </template>
+                        </Select>
                     </div>
                     <div>
                         <div class="text-xs font-medium text-gray-500 mb-1">Location</div>
                         <Select v-model="selectedLocationId" :options="locations" optionLabel="name" optionValue="id"
-                                filter filterPlaceholder="Search..." placeholder="Select location" class="w-full" />
+                                filter filterPlaceholder="Search..." placeholder="Select location" class="w-full"
+                                autoFilterFocus />
                     </div>
                     <div>
                         <div class="text-xs font-medium text-gray-500 mb-1">Commission (%)</div>
@@ -301,7 +381,8 @@ const saveOrder = () => {
                     <div class="rounded-xl bg-white p-3 shadow">
                         <div class="text-xs font-medium text-gray-500 mb-1">Product</div>
                         <Select v-model="selectedProductId" :options="products" optionLabel="name" optionValue="id"
-                                filter filterPlaceholder="Search..." placeholder="Select product" class="w-full" />
+                                filter filterPlaceholder="Search..." placeholder="Select product" class="w-full"
+                                autoFilterFocus />
                     </div>
 
                     <!-- Components -->
@@ -335,8 +416,32 @@ const saveOrder = () => {
                         </div>
                     </div>
 
+                    <!-- Portion & Box + Final -->
+                    <div class="space-y-2">
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <label>Portion (g)
+                                <input type="number" step="1" min="1" v-model.number="portionGrams"
+                                       class="mt-0.5 w-full rounded border p-1.5" />
+                            </label>
+                            <label>Units/box
+                                <input type="number" step="1" min="1" v-model.number="unitsPerBox"
+                                       class="mt-0.5 w-full rounded border p-1.5" />
+                            </label>
+                        </div>
+                        <div class="text-xs text-gray-400 text-center">
+                            box net weight = {{ portionGrams > 0 ? nf(portionGrams * unitsPerBox / 1000, 3) : '—' }} kg
+                        </div>
+                        <div class="text-center">
+                            <span class="text-2xl font-bold text-blue-600">{{ nf(finalPrice) }} €</span>
+                            <span class="text-xs text-gray-400 ml-1">/kg</span>
+                            <div v-if="portionGrams > 0" class="text-xs text-gray-500 mt-0.5">
+                                {{ nf(+(finalPrice * portionGrams / 1000).toFixed(2)) }} €/portion ·
+                                {{ nf(+(finalPrice * portionGrams / 1000).toFixed(2) * unitsPerBox) }} €/box
+                            </div>
+                        </div>
+                    </div>
 
-                    <!-- BOTTOM ROW: Costs accordion + Add to order + Save order -->
+                    <!-- BOTTOM ROW: Costs accordion -->
                     <div v-if="products.length" class="flex gap-3 items-stretch">
                         <!-- Costs accordion -->
                         <div class="flex-1 rounded-xl bg-white p-3 shadow">
@@ -375,10 +480,16 @@ const saveOrder = () => {
                     </div>
 
                     <!-- Buttons -->
-                    <div class="flex flex-col gap-2 justify-end">
-                        <button class="rounded bg-green-600 px-5 py-2 text-sm text-white hover:bg-green-700 transition whitespace-nowrap"
+                    <div class="flex gap-2 justify-end">
+                        <button v-if="editingItemIndex !== null"
+                                class="rounded border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition"
+                                @click="cancelEdit">
+                            Cancel
+                        </button>
+                        <button class="rounded px-5 py-2 text-sm text-white transition whitespace-nowrap"
+                                :class="editingItemIndex !== null ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-600 hover:bg-green-700'"
                                 @click="addToOrder">
-                            ➕ Add to order
+                            {{ editingItemIndex !== null ? '✏️ Update item' : '➕ Add to order' }}
                         </button>
                     </div>
                 </div>
@@ -387,40 +498,19 @@ const saveOrder = () => {
                 <div class="col-span-5">
                     <div class="rounded-xl bg-white p-3 shadow space-y-3">
 
-                        <!-- Portion & Box + Final -->
-                        <div class="space-y-2">
-                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                <label>Portion (g)
-                                    <input type="number" step="1" min="1" v-model.number="portionGrams"
-                                           class="mt-0.5 w-full rounded border p-1.5" />
-                                </label>
-                                <label>Units/box
-                                    <input type="number" step="1" min="1" v-model.number="unitsPerBox"
-                                           class="mt-0.5 w-full rounded border p-1.5" />
-                                </label>
-                            </div>
-                            <div class="text-xs text-gray-400 text-center">
-                                box net weight = {{ portionGrams > 0 ? nf(portionGrams * unitsPerBox / 1000, 3) : '—' }} kg
-                            </div>
-                            <div class="text-center">
-                                <span class="text-2xl font-bold text-blue-600">{{ nf(finalPrice) }} €</span>
-                                <span class="text-xs text-gray-400 ml-1">/kg</span>
-                                <div v-if="portionGrams > 0" class="text-xs text-gray-500 mt-0.5">
-                                    {{ nf(+(finalPrice * portionGrams / 1000).toFixed(2)) }} €/portion ·
-                                    {{ nf(+(finalPrice * portionGrams / 1000).toFixed(2) * unitsPerBox) }} €/box
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Order items -->
                         <div class="border-t pt-2 space-y-1">
                             <div class="text-sm font-semibold">Order items</div>
                             <div v-if="!orderItems.length" class="text-xs text-gray-400">No items yet.</div>
                             <div class="space-y-1 max-h-[45vh] overflow-y-auto pr-1">
                                 <div v-for="(item, i) in orderItems" :key="i"
-                                     class="relative rounded border p-2 text-xs">
+                                     class="relative rounded border p-2 text-xs cursor-pointer transition"
+                                     :class="editingItemIndex === i
+                                         ? 'border-orange-400 bg-orange-50'
+                                         : 'hover:border-blue-300 hover:bg-blue-50'"
+                                     @click="startEditItem(i)">
                                     <button class="absolute top-1 right-1 text-red-400 hover:text-red-600 px-1"
-                                            title="Remove" @click="orderItems.splice(i, 1)">✕</button>
+                                            title="Remove" @click.stop="orderItems.splice(i, 1); if (editingItemIndex === i) editingItemIndex = null">✕</button>
                                     <div class="font-semibold pr-4">{{ item.product_name }}</div>
                                     <div class="text-gray-500">
                                         {{ nf(item.final_price) }} €/kg · {{ item.portion_grams }}g × {{ item.units_per_box }}
@@ -428,6 +518,7 @@ const saveOrder = () => {
                                     <ul class="mt-0.5 text-gray-400">
                                         <li v-for="c in item.components" :key="c.id">{{ c.name }} – {{ c.grams }}g</li>
                                     </ul>
+                                    <div v-if="editingItemIndex === i" class="mt-1 text-orange-500 font-medium">editing...</div>
                                 </div>
                             </div>
                         </div>
