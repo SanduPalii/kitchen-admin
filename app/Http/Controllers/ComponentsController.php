@@ -15,7 +15,10 @@ class ComponentsController extends Controller
         $components = Component::with('ingredients')->get()->map(function ($component) {
 
             $cost = $component->ingredients->sum(function ($ing) {
-                return round((float) $ing->kg_price * (float) $ing->pivot->quantity, 2);
+                $kgPrice = (float) $ing->size > 0
+                    ? (float) $ing->price / (float) $ing->size
+                    : (float) ($ing->kg_price ?? 0);
+                return round($kgPrice * (float) $ing->pivot->quantity, 2);
             });
 
             $costPerKg = $component->quantity > 0
@@ -51,7 +54,15 @@ class ComponentsController extends Controller
     public function create()
     {
         return Inertia::render('сomponents/Create', [
-            'ingredients' => Ingredient::select('id', 'name', 'unit', 'kg_price')->get(),
+            'ingredients' => Ingredient::select('id', 'name', 'unit', 'price', 'size', 'kg_price')->get()
+                ->map(fn ($i) => [
+                    'id'       => $i->id,
+                    'name'     => $i->name,
+                    'unit'     => $i->unit,
+                    'kg_price' => (float) $i->size > 0
+                        ? (float) $i->price / (float) $i->size
+                        : (float) ($i->kg_price ?? 0),
+                ]),
         ]);
     }
 
@@ -87,7 +98,15 @@ class ComponentsController extends Controller
     {
         return Inertia::render('сomponents/Edit', [
             'component' => $component->load('ingredients'),
-            'ingredients' => Ingredient::select('id', 'name', 'unit', 'kg_price')->get(),
+            'ingredients' => Ingredient::select('id', 'name', 'unit', 'price', 'size', 'kg_price')->get()
+                ->map(fn ($i) => [
+                    'id'       => $i->id,
+                    'name'     => $i->name,
+                    'unit'     => $i->unit,
+                    'kg_price' => (float) $i->size > 0
+                        ? (float) $i->price / (float) $i->size
+                        : (float) ($i->kg_price ?? 0),
+                ]),
         ]);
     }
 
