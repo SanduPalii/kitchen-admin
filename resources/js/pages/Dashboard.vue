@@ -365,7 +365,7 @@ onBeforeUnmount(destroyAll)
 
             <!-- ── Filters ─────────────────────────────── -->
             <div class="flex flex-wrap items-end gap-3 rounded-xl border bg-white p-4 shadow-sm">
-                <div class="flex flex-col gap-1">
+                <div class="flex w-full flex-col gap-1 sm:w-auto">
                     <label class="text-xs font-medium text-gray-500">Date from</label>
                     <DatePicker
                         v-model="fDateFrom"
@@ -376,7 +376,7 @@ onBeforeUnmount(destroyAll)
                         inputClass="!py-1.5 !text-sm"
                     />
                 </div>
-                <div class="flex flex-col gap-1">
+                <div class="flex w-full flex-col gap-1 sm:w-auto">
                     <label class="text-xs font-medium text-gray-500">Date to</label>
                     <DatePicker
                         v-model="fDateTo"
@@ -387,7 +387,7 @@ onBeforeUnmount(destroyAll)
                         inputClass="!py-1.5 !text-sm"
                     />
                 </div>
-                <div class="flex flex-col gap-1">
+                <div class="flex w-full flex-col gap-1 sm:w-auto">
                     <label class="text-xs font-medium text-gray-500">Client</label>
                     <Select
                         v-model="fClientId"
@@ -396,10 +396,10 @@ onBeforeUnmount(destroyAll)
                         optionValue="id"
                         placeholder="All clients"
                         showClear
-                        class="min-w-[160px] text-sm"
+                        class="w-full text-sm sm:min-w-[160px]"
                     />
                 </div>
-                <div class="flex flex-col gap-1">
+                <div class="flex w-full flex-col gap-1 sm:w-auto">
                     <label class="text-xs font-medium text-gray-500">Location</label>
                     <Select
                         v-model="fLocationId"
@@ -408,7 +408,7 @@ onBeforeUnmount(destroyAll)
                         optionValue="id"
                         placeholder="All locations"
                         showClear
-                        class="min-w-[150px] text-sm"
+                        class="w-full text-sm sm:min-w-[150px]"
                     />
                 </div>
                 <button
@@ -418,7 +418,7 @@ onBeforeUnmount(destroyAll)
                 >
                     Clear
                 </button>
-                <div class="ml-auto self-end text-sm text-gray-400">
+                <div class="w-full self-end text-sm text-gray-400 sm:ml-auto sm:w-auto">
                     {{ filtered.length }} / {{ orders.length }} orders
                 </div>
             </div>

@@ -102,7 +102,7 @@ const fmt2 = (v: number) => Number(v).toFixed(2).replace('.', ',')
             <div class="rounded-xl bg-white border shadow-sm p-4 space-y-3">
                 <div class="text-sm font-semibold text-gray-700">Settings</div>
 
-                <div class="grid grid-cols-7 gap-3 text-xs">
+                <div class="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4 xl:grid-cols-7">
                     <!-- Commission -->
                     <label class="flex flex-col gap-1">
                         <span class="text-gray-500 font-medium">Commission %</span>

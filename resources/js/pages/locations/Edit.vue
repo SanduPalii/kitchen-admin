@@ -24,7 +24,7 @@ const submit = () => {
 <template>
     <Head title="Edit location" />
     <AppLayout>
-        <div class="max-w-md space-y-4 rounded bg-white p-6 shadow">
+        <div class="mx-4 max-w-md space-y-4 rounded bg-white p-6 shadow sm:mx-auto">
 
             <h1 class="text-xl font-bold">Edit location</h1>
 

@@ -325,7 +325,7 @@ const saveOrder = () => {
 
             <!-- TOP BAR: Client · Location · Commission -->
             <div class="rounded-xl bg-white p-3 shadow">
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div>
                         <div class="text-xs font-medium text-gray-500 mb-1">Client</div>
                         <Select v-model="selectedClientId" :options="clients" optionLabel="name" optionValue="id"
@@ -375,7 +375,7 @@ const saveOrder = () => {
             <div v-else class="grid grid-cols-12 gap-3">
 
                 <!-- LEFT: Product + Components -->
-                <div class="col-span-7 space-y-3">
+                <div class="col-span-12 space-y-3 lg:col-span-7">
 
                     <!-- Product -->
                     <div class="rounded-xl bg-white p-3 shadow">
@@ -450,7 +450,7 @@ const saveOrder = () => {
                                 <span>Additional costs — per order</span>
                                 <span class="text-xs text-gray-400">{{ costsOpen ? '▲ hide' : '▼ show' }}</span>
                             </button>
-                            <div v-show="costsOpen" class="mt-2 grid grid-cols-6 gap-2 text-xs">
+                            <div v-show="costsOpen" class="mt-2 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
                                 <label>Pkg. mat.
                                     <input type="number" step="0.01" v-model.number="costs.packaging_material"
                                            class="mt-0.5 w-full rounded border p-1.5" />
@@ -495,7 +495,7 @@ const saveOrder = () => {
                 </div>
 
                 <!-- RIGHT: Portion + Price + Items -->
-                <div class="col-span-5">
+                <div class="col-span-12 lg:col-span-5">
                     <div class="rounded-xl bg-white p-3 shadow space-y-3">
 
                         <!-- Order items -->

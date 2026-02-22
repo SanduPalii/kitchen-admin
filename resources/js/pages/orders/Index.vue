@@ -106,7 +106,7 @@ const deleteOrder = (id: number) => {
 
         <div class="space-y-4 p-6">
 
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
                 <h1 class="text-xl font-bold">Orders</h1>
                 <a
                     href="/calculator"
@@ -119,15 +119,15 @@ const deleteOrder = (id: number) => {
             <!-- ── Filters ── -->
             <div class="flex flex-wrap items-end gap-3 rounded-lg border bg-white p-4 shadow">
 
-                <div class="flex flex-col gap-1 text-sm">
+                <div class="flex w-full flex-col gap-1 text-sm sm:w-auto">
                     <label class="font-medium text-gray-500">Client</label>
-                    <select v-model="filterClientId" class="min-w-[160px] rounded border px-2 py-1.5">
+                    <select v-model="filterClientId" class="w-full rounded border px-2 py-1.5 sm:min-w-[160px]">
                         <option :value="null">All clients</option>
                         <option v-for="c in uniqueClients" :key="c.id" :value="c.id">{{ c.name }}</option>
                     </select>
                 </div>
 
-                <div class="flex flex-col gap-1 text-sm">
+                <div class="flex w-full flex-col gap-1 text-sm sm:w-auto">
                     <label class="font-medium text-gray-500">Date range</label>
                     <DatePicker
                         v-model="filterDateRange"
@@ -137,13 +137,13 @@ const deleteOrder = (id: number) => {
                         showIcon
                         showButtonBar
                         :manualInput="false"
-                        inputClass="!py-1.5 !text-sm !w-52"
+                        inputClass="!py-1.5 !text-sm !w-full sm:!w-52"
                     />
                 </div>
 
-                <div class="flex flex-col gap-1 text-sm">
+                <div class="flex w-full flex-col gap-1 text-sm sm:w-auto">
                     <label class="font-medium text-gray-500">Status</label>
-                    <select v-model="filterStatus" class="min-w-[130px] rounded border px-2 py-1.5">
+                    <select v-model="filterStatus" class="w-full rounded border px-2 py-1.5 sm:min-w-[130px]">
                         <option value="all">All statuses</option>
                         <option value="draft">Draft</option>
                         <option value="approved">Approved</option>
@@ -158,7 +158,7 @@ const deleteOrder = (id: number) => {
                     Clear
                 </button>
 
-                <div class="ml-auto self-end text-sm text-gray-400">
+                <div class="w-full self-end text-sm text-gray-400 sm:ml-auto sm:w-auto">
                     {{ filteredOrders.length }} of {{ orders.length }}
                 </div>
             </div>

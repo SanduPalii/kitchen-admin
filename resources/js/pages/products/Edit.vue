@@ -69,7 +69,7 @@ const submit = () => form.put(`/products/${props.product.id}`)
 <template>
     <Head title="Edit product" />
     <AppLayout>
-        <div class="max-w-3xl space-y-4 rounded bg-white p-6 shadow">
+        <div class="mx-4 max-w-3xl space-y-4 rounded bg-white p-6 shadow sm:mx-auto">
 
             <h1 class="text-xl font-bold">Edit product</h1>
 

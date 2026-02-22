@@ -72,7 +72,7 @@ const onDelete = (row: any) => {
 
         <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
 
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-3">
                 <!-- Фильтр -->
                 <select v-model="selectedUnit" class="rounded border px-3 py-2">
                     <option value="">All units</option>

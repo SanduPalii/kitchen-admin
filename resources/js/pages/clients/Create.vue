@@ -20,7 +20,7 @@ const submit = () => form.post('/clients');
 <template>
     <Head title="Create client" />
     <AppLayout>
-        <div class="max-w-md space-y-4 rounded bg-white p-6 shadow">
+        <div class="mx-4 max-w-md space-y-4 rounded bg-white p-6 shadow sm:mx-auto">
             <h1 class="text-xl font-bold">Create client</h1>
 
             <input v-model="form.name" class="w-full rounded border p-2" placeholder="Name" />

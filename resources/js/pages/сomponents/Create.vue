@@ -55,12 +55,12 @@ const submit = () => {
 <template>
     <Head title="Create component" />
     <AppLayout>
-        <div class="max-w-4xl space-y-4 rounded-xl bg-white p-5 shadow-sm">
+        <div class="mx-4 max-w-4xl space-y-4 rounded-xl bg-white p-5 shadow-sm sm:mx-auto">
 
             <h1 class="text-lg font-semibold text-gray-800">Create component</h1>
 
             <!-- Name / Type / Quantity in one row -->
-            <div class="flex gap-3">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
                 <div class="flex-1">
                     <input
                         v-model="form.name"
@@ -105,7 +105,7 @@ const submit = () => {
             </div>
 
             <!-- Items table -->
-            <div class="rounded-lg border overflow-hidden">
+            <div class="overflow-x-auto rounded-lg border">
                 <!-- Header -->
                 <div class="grid grid-cols-[2rem_1fr_7rem_6rem_2.5rem] gap-2 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500 border-b">
                     <span class="text-center">#</span>

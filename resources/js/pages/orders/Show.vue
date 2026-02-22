@@ -44,7 +44,7 @@ const props = defineProps<{
 
             <h1 class="text-xl font-bold">Order #{{ order.id }}</h1>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div><b>Client:</b> {{ order.client?.name }}</div>
                 <div><b>Location:</b> {{ order.location?.name }}</div>
                 <div><b>Status:</b> {{ order.approved ? 'Approved' : 'Draft' }}</div>
