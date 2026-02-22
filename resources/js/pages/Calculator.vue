@@ -404,7 +404,7 @@ const saveOrder = () => {
                                 <button class="h-7 w-7 rounded-full border text-base leading-none" @click="increaseComponent(i, step)">+</button>
                                 <button
                                         class="h-7 w-7 rounded-full border text-xs transition"
-                                        :class="freeGrams > 0 ? 'text-yellow-500' : 'text-gray-300 cursor-not-allowed'"
+                                        :class="freeGrams > 0 ? 'text-yellow-500' : 'bg-gray-100 cursor-not-allowed'"
                                         :disabled="freeGrams <= 0"
                                         title="Take all free grams" @click="takeAllFree(i)">⚡</button>
                             </div>
