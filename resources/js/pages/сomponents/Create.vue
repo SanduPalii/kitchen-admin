@@ -15,6 +15,8 @@ const ingredientOptions = props.ingredients.map(ing => ({
     label: `${ing.name} (${ing.unit})`,
 }))
 
+const ingredientMap = new Map(props.ingredients.map(i => [i.id, i]))
+
 const form = useForm({
     name: '',
     quantity: null as number | null,
@@ -105,10 +107,11 @@ const submit = () => {
             <!-- Items table -->
             <div class="rounded-lg border overflow-hidden">
                 <!-- Header -->
-                <div class="grid grid-cols-[2rem_1fr_8rem_2.5rem] gap-2 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500 border-b">
+                <div class="grid grid-cols-[2rem_1fr_7rem_6rem_2.5rem] gap-2 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500 border-b">
                     <span class="text-center">#</span>
                     <span>Ingredient</span>
                     <span class="text-center">Quantity</span>
+                    <span class="text-center">Price / kg</span>
                     <span></span>
                 </div>
 
@@ -116,7 +119,7 @@ const submit = () => {
                 <div
                     v-for="(item, i) in form.items"
                     :key="i"
-                    class="grid grid-cols-[2rem_1fr_8rem_2.5rem] gap-2 items-center px-3 py-1.5 border-b last:border-b-0 hover:bg-gray-50/60 transition"
+                    class="grid grid-cols-[2rem_1fr_7rem_6rem_2.5rem] gap-2 items-center px-3 py-1.5 border-b last:border-b-0 hover:bg-gray-50/60 transition"
                 >
                     <span class="text-center text-xs text-gray-400">{{ i + 1 }}</span>
 
@@ -138,6 +141,10 @@ const submit = () => {
                         min="0.0001"
                         class="w-full rounded border px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-400"
                     />
+
+                    <span class="text-center text-sm text-gray-500">
+                        {{ item.ingredient_id ? (ingredientMap.get(item.ingredient_id)?.kg_price ?? '—') : '—' }}
+                    </span>
 
                     <button
                         v-if="form.items.length > 1"
