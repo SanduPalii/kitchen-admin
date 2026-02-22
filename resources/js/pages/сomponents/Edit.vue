@@ -120,7 +120,7 @@ const submit = () => {
                     <span class="text-center">#</span>
                     <span>Ingredient</span>
                     <span class="text-center">Quantity</span>
-                    <span class="text-center">Price / kg</span>
+                    <span class="text-center">Cost</span>
                     <span></span>
                 </div>
 
@@ -152,7 +152,7 @@ const submit = () => {
                     />
 
                     <span class="text-center text-sm text-gray-500">
-                        {{ item.ingredient_id ? (ingredientMap.get(item.ingredient_id)?.kg_price ?? '—') : '—' }}
+                        {{ item.ingredient_id ? (Math.round((ingredientMap.get(item.ingredient_id)?.kg_price ?? 0) * Number(item.quantity) * 100) / 100) : '—' }}
                     </span>
 
                     <button
