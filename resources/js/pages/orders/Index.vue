@@ -173,7 +173,7 @@ const deleteOrder = (id: number) => {
                             <th class="border p-2 text-left">Location</th>
                             <th class="border p-2 text-center">Date</th>
                             <th class="border p-2 text-center">Size</th>
-                            <th class="border p-2 text-center">Price</th>
+                            <th class="border p-2 text-center">Average price</th>
                             <th class="border p-2 text-center">Status</th>
                             <th class="border p-2 text-center w-[230px]">Actions</th>
                         </tr>
@@ -191,7 +191,7 @@ const deleteOrder = (id: number) => {
                             <td class="border p-2">{{ o.location?.name ?? '—' }}</td>
                             <td class="border p-2 text-center text-gray-500">{{ o.date.slice(0, 10) }}</td>
                             <td class="border p-2 text-center">{{ o.size }}</td>
-                            <td class="border p-2 text-center font-semibold">{{ nf(o.price) }} €</td>
+                            <td class="border p-2 text-center font-semibold">{{ nf(o.size ? o.price / o.size : 0) }} €</td>
                             <td class="border p-2 text-center">
                                 <span
                                     class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
