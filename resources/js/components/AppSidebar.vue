@@ -24,7 +24,7 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Orders',
+        title: 'Offers',
         href: orders(),
         icon: ListOrdered,
     },
