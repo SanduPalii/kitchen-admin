@@ -4,10 +4,12 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import { computed, ref } from 'vue'
 
 type Item = {
+    id: number
     name: string
     type: string
     portion_grams: number
     food_cost_per_kg: number
+    sell_percent: number
 }
 
 const props = defineProps<{
@@ -21,7 +23,6 @@ const props = defineProps<{
         packaging: number
         transportation: number
         multi_delivery: number
-        sell_percent: number
     }
     items: Item[]
 }>()
@@ -33,8 +34,12 @@ const costs = ref({
     packaging:          props.order.packaging          ?? 0.08,
     transportation:     props.order.transportation     ?? 0.45,
     multi_delivery:     props.order.multi_delivery     ?? 0.12,
-    sell_percent:       props.order.sell_percent       ?? 30,
 })
+
+// Per-item sell_percent (editable)
+const itemMarkups = ref<Record<number, number>>(
+    Object.fromEntries((props.items ?? []).map(item => [item.id, item.sell_percent ?? 30]))
+)
 
 const saving = ref(false)
 const saved  = ref(false)
@@ -49,7 +54,10 @@ function saveSettings() {
         packaging:          costs.value.packaging,
         transportation:     costs.value.transportation,
         multi_delivery:     costs.value.multi_delivery,
-        sell_percent:       costs.value.sell_percent,
+        items: (props.items ?? []).map(item => ({
+            id:           item.id,
+            sell_percent: itemMarkups.value[item.id] ?? 30,
+        })),
     }, {
         preserveScroll: true,
         onSuccess: () => {
@@ -62,6 +70,8 @@ function saveSettings() {
 
 const rows = computed(() =>
     (props.items ?? []).map(item => {
+        const sellPct = itemMarkups.value[item.id] ?? 30
+
         const additionalPerKg =
             costs.value.packaging_material +
             costs.value.production +
@@ -71,11 +81,11 @@ const rows = computed(() =>
 
         const productCost  = item.food_cost_per_kg * item.portion_grams / 1000
         const addCosts     = (item.food_cost_per_kg + additionalPerKg) * item.portion_grams / 1000
-        const sellingPrice = addCosts * (1 + costs.value.sell_percent / 100)
+        const sellingPrice = addCosts * (1 + sellPct / 100)
         const commission   = sellingPrice * commissionPct.value / 100
         const margin       = sellingPrice - commission - addCosts
 
-        return { ...item, product_cost: productCost, add_costs: addCosts, selling_price: sellingPrice, commission, margin }
+        return { ...item, sell_pct: sellPct, product_cost: productCost, add_costs: addCosts, selling_price: sellingPrice, commission, margin }
     })
 )
 
@@ -102,7 +112,7 @@ const fmt2 = (v: number) => Number(v).toFixed(2).replace('.', ',')
             <div class="rounded-xl bg-white border shadow-sm p-4 space-y-3">
                 <div class="text-sm font-semibold text-gray-700">Settings</div>
 
-                <div class="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4 xl:grid-cols-7">
+                <div class="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 xl:grid-cols-6">
                     <!-- Commission -->
                     <label class="flex flex-col gap-1">
                         <span class="text-gray-500 font-medium">Commission %</span>
@@ -136,11 +146,6 @@ const fmt2 = (v: number) => Number(v).toFixed(2).replace('.', ',')
                         <input v-model.number="costs.multi_delivery" type="number" step="0.01" min="0"
                                class="rounded border px-2 py-1.5 text-center focus:outline-none focus:border-blue-400" />
                     </label>
-                    <label class="flex flex-col gap-1">
-                        <span class="text-gray-500 font-medium">Markup %</span>
-                        <input v-model.number="costs.sell_percent" type="number" step="1" min="0"
-                               class="rounded border px-2 py-1.5 text-center focus:outline-none focus:border-blue-400" />
-                    </label>
                 </div>
 
                 <div class="flex items-center justify-between pt-1">
@@ -169,6 +174,9 @@ const fmt2 = (v: number) => Number(v).toFixed(2).replace('.', ',')
                             </th>
                             <th class="border px-3 py-2 text-center font-semibold whitespace-nowrap">
                                 Add costs<br><span class="text-xs text-gray-400 font-normal">(food + extra)</span>
+                            </th>
+                            <th class="border px-3 py-2 text-center font-semibold whitespace-nowrap">
+                                Markup %
                             </th>
                             <th class="border px-3 py-2 text-center font-semibold whitespace-nowrap">
                                 Selling Price<br><span class="text-xs text-gray-400 font-normal">(with markup)</span>
@@ -203,6 +211,14 @@ const fmt2 = (v: number) => Number(v).toFixed(2).replace('.', ',')
                             <td class="border px-3 py-2 text-center font-mono text-gray-700">
                                 {{ fmt(row.add_costs) }} €
                             </td>
+                            <td class="border px-1 py-1 text-center">
+                                <input
+                                    v-model.number="itemMarkups[row.id]"
+                                    type="number" min="0" step="1"
+                                    class="w-16 rounded border px-1 py-1 text-center text-sm font-semibold focus:outline-none focus:border-blue-400"
+                                />
+                                <span class="text-xs text-gray-400 ml-0.5">%</span>
+                            </td>
                             <td class="border px-3 py-2 text-center font-mono font-semibold text-blue-700">
                                 {{ fmt(row.selling_price) }} €
                             </td>
@@ -223,7 +239,8 @@ const fmt2 = (v: number) => Number(v).toFixed(2).replace('.', ',')
             <p class="text-xs text-gray-400">
                 <b>Add costs</b> = (food + pkg.mat + production + packaging + transport + multi-del) × portion/1000 &nbsp;|&nbsp;
                 <b>Selling Price</b> = Add costs × (1 + markup%) &nbsp;|&nbsp;
-                <b>Margin</b> = SP − Commission − Add costs
+                <b>Margin</b> = SP − Commission − Add costs &nbsp;|&nbsp;
+                <b>Markup %</b> — per product, editable in table
             </p>
 
         </div>

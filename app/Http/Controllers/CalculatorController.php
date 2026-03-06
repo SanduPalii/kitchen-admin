@@ -78,13 +78,13 @@ class CalculatorController extends Controller
             'packaging' => 'required|numeric|min:0',
             'transportation' => 'required|numeric|min:0',
             'multi_delivery' => 'required|numeric|min:0',
-            'sell_percent' => 'required|numeric|min:0',
 
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.final_price' => 'required|numeric|min:0',
             'items.*.portion_grams' => 'required|integer|min:1',
             'items.*.units_per_box' => 'required|integer|min:1',
+            'items.*.sell_percent' => 'required|numeric|min:0',
 
             'items.*.components' => 'required|array|min:1',
             'items.*.components.*.component_id' => 'required|exists:components,id',
@@ -108,7 +108,7 @@ class CalculatorController extends Controller
                 'packaging'          => $data['packaging'],
                 'transportation'     => $data['transportation'],
                 'multi_delivery'     => $data['multi_delivery'],
-                'sell_percent'       => $data['sell_percent'],
+                'sell_percent'       => 0,
             ]);
 
             $total = 0;
@@ -116,11 +116,12 @@ class CalculatorController extends Controller
             foreach ($data['items'] as $item) {
 
                 $orderProduct = OrderProduct::create([
-                    'order_id'    => $order->id,
-                    'product_id'  => $item['product_id'],
-                    'price'       => $item['final_price'],
+                    'order_id'      => $order->id,
+                    'product_id'    => $item['product_id'],
+                    'price'         => $item['final_price'],
                     'portion_grams' => $item['portion_grams'],
                     'units_per_box' => $item['units_per_box'],
+                    'sell_percent'  => $item['sell_percent'],
                 ]);
 
                 foreach ($item['components'] as $component) {
@@ -164,7 +165,7 @@ class CalculatorController extends Controller
                 'packaging'          => $order->packaging,
                 'transportation'     => $order->transportation,
                 'multi_delivery'     => $order->multi_delivery,
-                'sell_percent'       => $order->sell_percent,
+                'sell_percent'       => 0,
             ]);
 
             foreach ($orderProducts as $op) {
@@ -174,6 +175,7 @@ class CalculatorController extends Controller
                     'price'         => $op->price,
                     'portion_grams' => $op->portion_grams,
                     'units_per_box' => $op->units_per_box,
+                    'sell_percent'  => $op->sell_percent,
                 ]);
 
                 foreach ($op->components as $c) {
@@ -226,12 +228,13 @@ class CalculatorController extends Controller
                 'transportation'     => (float) $order->transportation,
                 'multi_delivery'     => (float) $order->multi_delivery,
                 'sell_percent'       => (float) $order->sell_percent,
-                'items' => $orderProducts->map(function ($op) {
+                'items' => $orderProducts->map(function ($op) use ($order) {
                     return [
                         'product_id'    => $op->product_id,
                         'final_price'   => (float) $op->price,
                         'portion_grams' => (int) ($op->portion_grams ?? 100),
                         'units_per_box' => (int) ($op->units_per_box ?? 1),
+                        'sell_percent'  => (float) ($op->sell_percent ?: $order->sell_percent),
                         'components'    => $op->components->map(fn ($c) => [
                             'component_id' => $c->component_id,
                             'name'         => $c->component->name,
@@ -286,13 +289,13 @@ class CalculatorController extends Controller
             'packaging' => 'required|numeric|min:0',
             'transportation' => 'required|numeric|min:0',
             'multi_delivery' => 'required|numeric|min:0',
-            'sell_percent' => 'required|numeric|min:0',
 
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.final_price' => 'required|numeric|min:0',
             'items.*.portion_grams' => 'required|integer|min:1',
             'items.*.units_per_box' => 'required|integer|min:1',
+            'items.*.sell_percent' => 'required|numeric|min:0',
 
             'items.*.components' => 'required|array|min:1',
             'items.*.components.*.component_id' => 'required|exists:components,id',
@@ -312,7 +315,7 @@ class CalculatorController extends Controller
                 'packaging'          => $data['packaging'],
                 'transportation'     => $data['transportation'],
                 'multi_delivery'     => $data['multi_delivery'],
-                'sell_percent'       => $data['sell_percent'],
+                'sell_percent'       => 0,
             ]);
 
             // Delete old order products (cascade deletes components)
@@ -328,6 +331,7 @@ class CalculatorController extends Controller
                     'price'         => $item['final_price'],
                     'portion_grams' => $item['portion_grams'],
                     'units_per_box' => $item['units_per_box'],
+                    'sell_percent'  => $item['sell_percent'],
                 ]);
 
                 foreach ($item['components'] as $c) {

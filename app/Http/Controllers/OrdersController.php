@@ -185,7 +185,7 @@ class OrdersController extends Controller
             ->get();
 
         // Pass raw food cost per kg so the frontend can recompute when costs change
-        $items = $orderProducts->map(function (OrderProduct $op) {
+        $items = $orderProducts->map(function (OrderProduct $op) use ($order) {
             $portionGrams = (int) ($op->portion_grams ?? 320);
 
             $foodCostPerKg = $op->components->sum(fn ($c) =>
@@ -196,10 +196,12 @@ class OrdersController extends Controller
             $cleanName = trim(preg_replace('/\s*\((vegan|vegetarian)\)/i', '', $rawName));
 
             return [
+                'id'               => $op->id,
                 'name'             => $cleanName,
                 'type'             => $op->product?->type ?? 'base',
                 'portion_grams'    => $portionGrams,
                 'food_cost_per_kg' => round($foodCostPerKg, 2),
+                'sell_percent'     => (float) ($op->sell_percent ?: $order->sell_percent),
             ];
         })->values();
 
@@ -229,10 +231,28 @@ class OrdersController extends Controller
             'packaging'          => 'required|numeric|min:0',
             'transportation'     => 'required|numeric|min:0',
             'multi_delivery'     => 'required|numeric|min:0',
-            'sell_percent'       => 'required|numeric|min:0',
+
+            'items'                    => 'sometimes|array',
+            'items.*.id'               => 'required_with:items|exists:order_products,id',
+            'items.*.sell_percent'     => 'required_with:items|numeric|min:0',
         ]);
 
-        $order->update($data);
+        $order->update([
+            'commission_pct'     => $data['commission_pct'],
+            'packaging_material' => $data['packaging_material'],
+            'production'         => $data['production'],
+            'packaging'          => $data['packaging'],
+            'transportation'     => $data['transportation'],
+            'multi_delivery'     => $data['multi_delivery'],
+        ]);
+
+        if (!empty($data['items'])) {
+            foreach ($data['items'] as $item) {
+                OrderProduct::where('id', $item['id'])
+                    ->where('order_id', $order->id)
+                    ->update(['sell_percent' => $item['sell_percent']]);
+            }
+        }
 
         return back()->with('success', 'Settings updated');
     }

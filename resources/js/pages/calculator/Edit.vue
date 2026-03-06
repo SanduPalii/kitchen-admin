@@ -26,6 +26,7 @@ type OrderItem = {
     final_price: number
     portion_grams: number
     units_per_box: number
+    sell_percent: number
 }
 
 const confirm = useConfirm()
@@ -41,12 +42,12 @@ const props = defineProps<{
         packaging: number
         transportation: number
         multi_delivery: number
-        sell_percent: number
         items: {
             product_id: number
             final_price: number
             portion_grams: number
             units_per_box: number
+            sell_percent: number
             components: {
                 component_id: number
                 name: string
@@ -72,7 +73,6 @@ const costs = ref({
     packaging: props.order.packaging ?? 0.08,
     transportation: props.order.transportation ?? 0.45,
     multi_delivery: props.order.multi_delivery ?? 0.12,
-    sell_percent: props.order.sell_percent ?? 30,
 })
 
 const commissionPct = ref<number>(props.order.commission_pct ?? 5)
@@ -137,6 +137,7 @@ const orderItems = ref<OrderItem[]>(
             final_price: item.final_price,
             portion_grams: item.portion_grams ?? 100,
             units_per_box: item.units_per_box ?? 1,
+            sell_percent: item.sell_percent ?? 30,
         }
     })
 )
@@ -197,7 +198,8 @@ const finalPrice = computed(() => {
         Number(costs.value.packaging) +
         Number(costs.value.transportation) +
         Number(costs.value.multi_delivery)
-    const percent = base * (Number(costs.value.sell_percent) / 100)
+    const sellPct = editingItem.value?.sell_percent ?? 0
+    const percent = base * (sellPct / 100)
     return +(base + percent).toFixed(2)
 })
 
@@ -211,7 +213,7 @@ function computeItemPrice(item: OrderItem): number {
         Number(costs.value.packaging) +
         Number(costs.value.transportation) +
         Number(costs.value.multi_delivery)
-    return +(base * (1 + Number(costs.value.sell_percent) / 100)).toFixed(2)
+    return +(base * (1 + Number(item.sell_percent) / 100)).toFixed(2)
 }
 
 const saveOrder = () => {
@@ -226,13 +228,13 @@ const saveOrder = () => {
         packaging: costs.value.packaging,
         transportation: costs.value.transportation,
         multi_delivery: costs.value.multi_delivery,
-        sell_percent: costs.value.sell_percent,
 
         items: orderItems.value.map(item => ({
             product_id: item.product_id,
             final_price: computeItemPrice(item),
             portion_grams: item.portion_grams,
             units_per_box: item.units_per_box,
+            sell_percent: item.sell_percent,
             components: item.components.map(c => ({
                 component_id: c.id,
                 grams: c.grams,
@@ -396,9 +398,9 @@ const saveOrder = () => {
                                         <input type="number" step="0.01" v-model.number="costs.multi_delivery"
                                                class="mt-0.5 w-full rounded border p-1.5" />
                                     </label>
-                                    <label>Sell %
-                                        <input type="number" step="1" v-model.number="costs.sell_percent"
-                                               class="mt-0.5 w-full rounded border p-1.5" />
+                                    <label class="text-blue-600 font-semibold">Sell % <span class="font-normal text-gray-400">(this item)</span>
+                                        <input type="number" step="1" min="0" v-model.number="editingItem.sell_percent"
+                                               class="mt-0.5 w-full rounded border p-1.5 border-blue-300 focus:border-blue-500" />
                                     </label>
                                 </div>
                             </div>

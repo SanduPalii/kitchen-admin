@@ -16,6 +16,7 @@ class OrderProduct extends Pivot
         'price',
         'portion_grams',
         'units_per_box',
+        'sell_percent',
     ];
 
 

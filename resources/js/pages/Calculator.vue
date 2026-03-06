@@ -41,6 +41,7 @@ type OrderItem = {
     final_price: number
     portion_grams: number
     units_per_box: number
+    sell_percent: number
 }
 
 const confirm = useConfirm()
@@ -186,6 +187,7 @@ const startEditItem = (i: number) => {
     }
     portionGrams.value = item.portion_grams
     unitsPerBox.value = item.units_per_box
+    costs.value.sell_percent = item.sell_percent
 }
 
 const cancelEdit = () => {
@@ -224,6 +226,7 @@ const addToOrder = () => {
         final_price: finalPrice.value,
         portion_grams: portionGrams.value,
         units_per_box: unitsPerBox.value,
+        sell_percent: costs.value.sell_percent,
     }
 
     if (editingItemIndex.value !== null) {
@@ -282,13 +285,13 @@ const saveOrder = () => {
         packaging: costs.value.packaging,
         transportation: costs.value.transportation,
         multi_delivery: costs.value.multi_delivery,
-        sell_percent: costs.value.sell_percent,
 
         items: orderItems.value.map(i => ({
             product_id: i.product_id,
             final_price: i.final_price,
             portion_grams: i.portion_grams,
             units_per_box: i.units_per_box,
+            sell_percent: i.sell_percent,
             components: i.components.map(c => ({
                 component_id: c.id,
                 grams: c.grams,
@@ -471,9 +474,9 @@ const saveOrder = () => {
                                     <input type="number" step="0.01" v-model.number="costs.multi_delivery"
                                            class="mt-0.5 w-full rounded border p-1.5" />
                                 </label>
-                                <label>Sell %
-                                    <input type="number" step="1" v-model.number="costs.sell_percent"
-                                           class="mt-0.5 w-full rounded border p-1.5" />
+                                <label class="text-blue-600 font-semibold">Sell % <span class="font-normal text-gray-400">(this item)</span>
+                                    <input type="number" step="1" min="0" v-model.number="costs.sell_percent"
+                                           class="mt-0.5 w-full rounded border p-1.5 border-blue-300 focus:border-blue-500" />
                                 </label>
                             </div>
                         </div>
